@@ -1,0 +1,400 @@
+# SPDX-License-Identifier: Apache-2.0
+# Licensed to the Ed-Fi Alliance under one or more agreements.
+# The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
+# See the LICENSE and NOTICES files in the project root for more information.
+
+name: On Pre-Release
+on:
+  release:
+    types:
+      - prereleased
+
+env:
+  ARTIFACTS_API_KEY: ${{ secrets.AZURE_ARTIFACTS_PERSONAL_ACCESS_TOKEN }}
+  ARTIFACTS_FEED_URL: ${{ vars.AZURE_ARTIFACTS_FEED_URL }}
+  VSS_NUGET_EXTERNAL_FEED_ENDPOINTS: '{"endpointCredentials": [{"endpoint": "${{ vars.AZURE_ARTIFACTS_FEED_URL }}","password": "${{ secrets.AZURE_ARTIFACTS_PERSONAL_ACCESS_TOKEN }}"}]}'
+  MANIFEST_FILE: "_manifest/spdx_2.2/manifest.spdx.json"
+  PACKAGE_NAME: "AdminApp"
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  DATABASE_IMAGE_NAME: ${{ vars.DATABASE_IMAGE_NAME }}
+  DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+  REF: ${{ github.ref_name }}
+
+permissions: read-all
+
+jobs:
+  pack:
+    name: Build and Pack
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: pwsh
+    outputs:
+      hash-code: ${{ steps.hash-code.outputs.hash-code }}
+      adminApp-version: ${{ steps.versions.outputs.adminApp }}
+      api-tgz-hash: ${{ steps.api-tgz-hash.outputs.api-tgz-hash }}
+      fe-tgz-hash: ${{ steps.fe-tgz-hash.outputs.fe-tgz-hash }}
+
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Set Version Numbers
+        id: versions
+        run: |
+          $apiPrefix = "v"
+
+          # Install the MinVer CLI tool
+          &dotnet tool install --global minver-cli
+
+          $adminAppVersion = $(minver -t $apiPrefix)
+
+          # Full release name
+          "adminApp=$adminAppVersion" >> $env:GITHUB_OUTPUT
+
+          # SemVer
+          "adminApp-semver=$($adminAppVersion -Replace $apiPrefix)" >> $env:GITHUB_OUTPUT
+
+
+      # --- TypeScript API and Frontend Build/Pack/Upload ---
+      - name: Install dependencies (API)
+        run: npm install --prefix packages/api
+
+      - name: Build API
+        run: npm run build --prefix packages/api
+
+      - name: Pack API
+        run: npm pack --prefix packages/api
+
+      - name: Rename API tgz with version
+        run: |
+          VERSION="${{ steps.versions.outputs.adminApp-semver }}"
+          mv packages/api/*.tgz "packages/api/AdminApp.Api-${VERSION}.tgz"
+
+      - name: Upload API npm package
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-npm-package
+          path: packages/api/AdminApp.Api-*.tgz
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Install dependencies (Frontend)
+        run: npm install --prefix packages/fe
+
+      - name: Build Frontend
+        run: npm run build --prefix packages/fe
+
+      - name: Pack Frontend
+        run: npm pack --prefix packages/fe
+
+      - name: Rename Frontend tgz with version
+        run: |
+          VERSION="${{ steps.versions.outputs.adminApp-semver }}"
+          mv packages/fe/*.tgz "packages/fe/AdminApp.FrontEnd-${VERSION}.tgz"
+
+      - name: Upload Frontend npm package
+        uses: actions/upload-artifact@v4
+        with:
+          name: fe-npm-package
+          path: packages/fe/AdminApp.FrontEnd-*.tgz
+          if-no-files-found: error
+          retention-days: 30
+
+      # Authenticate to Azure Artifacts npm registry
+      - name: Set up .npmrc for Azure Artifacts
+        run: |
+          echo "//pkgs.dev.azure.com/${{ vars.AZURE_ARTIFACTS_ORG }}/_packaging/${{ vars.AZURE_ARTIFACTS_FEED }}/npm/registry/:_authToken=${{ secrets.AZURE_ARTIFACTS_PERSONAL_ACCESS_TOKEN }}" > ~/.npmrc
+
+      # Publish API npm package to Azure Artifacts
+      - name: Publish API npm package to Azure Artifacts
+        run: |
+          npm publish --registry "https://pkgs.dev.azure.com/${{ vars.AZURE_ARTIFACTS_ORG }}/_packaging/${{ vars.AZURE_ARTIFACTS_FEED }}/npm/registry/" packages/api/*.tgz
+
+      # Publish Frontend npm package to Azure Artifacts
+      - name: Publish Frontend npm package to Azure Artifacts
+        run: |
+          npm publish --registry "https://pkgs.dev.azure.com/${{ vars.AZURE_ARTIFACTS_ORG }}/_packaging/${{ vars.AZURE_ARTIFACTS_FEED }}/npm/registry/" packages/fe/*.tgz
+
+      - name: Generate hash for API tgz
+        id: api-tgz-hash
+        shell: bash
+        run: |
+          api_tgz=$(ls packages/api/AdminApp.Api-*.tgz)
+          api_tgz_hash=$(sha256sum $api_tgz | awk '{print $1}')
+          echo "api-tgz-hash=$api_tgz_hash" >> $GITHUB_OUTPUT
+
+      - name: Generate hash for FrontEnd tgz
+        id: fe-tgz-hash
+        shell: bash
+        run: |
+          fe_tgz=$(ls packages/fe/AdminApp.FrontEnd-*.tgz)
+          fe_tgz_hash=$(sha256sum $fe_tgz | awk '{print $1}')
+          echo "fe-tgz-hash=$fe_tgz_hash" >> $GITHUB_OUTPUT
+
+  sbom-create:
+    name: Create SBOM
+    runs-on: ubuntu-latest
+    needs: pack
+    permissions:
+      actions: write
+    outputs:
+      api-sbom-hash-code: ${{ steps.api-sbom-hash.outputs.api-sbom-hash-code }}
+      fe-sbom-hash-code: ${{ steps.fe-sbom-hash.outputs.fe-sbom-hash-code }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Generate SBOM for API npm package
+        shell: pwsh
+        run: |
+          dotnet tool install --global Microsoft.Sbom.DotNetTool
+          sbom-tool generate `
+            -b ./packages/api `
+            -pn "AdminApp.Api-npm" `
+            -pv "${{ needs.pack.outputs.adminApp-version }}" `
+            -nsb https://ed-fi.org `
+            -m ./ `
+            -ps "Ed-Fi Alliance" `
+            -mf ./packages/api/manifest.spdx.json
+
+      - name: Generate SBOM for Frontend npm package
+        shell: pwsh
+        run: |
+          dotnet tool install --global Microsoft.Sbom.DotNetTool
+          sbom-tool generate `
+            -b ./packages/fe `
+            -pn "AdminApp.FrontEnd-npm" `
+            -pv "${{ needs.pack.outputs.adminApp-version }}" `
+            -nsb https://ed-fi.org `
+            -m ./ `
+            -ps "Ed-Fi Alliance" `
+            -mf ./packages/fe/manifest.spdx.json
+
+      - name: Upload API SBOM
+        if: success()
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          name: AdminApp.Api-SBOM
+          path: packages/api/manifest.spdx.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Frontend SBOM
+        if: success()
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        with:
+          name: AdminApp.FrontEnd-SBOM
+          path: packages/fe/manifest.spdx.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Generate hash code for API SBOM
+        id: api-sbom-hash
+        shell: bash
+        run: |
+          api_sbom_hash=$(sha256sum ./packages/api/manifest.spdx.json | awk '{print $1}')
+          echo "api-sbom-hash-code=$api_sbom_hash" >> $GITHUB_OUTPUT
+
+      - name: Generate hash code for Frontend SBOM
+        id: fe-sbom-hash
+        shell: bash
+        run: |
+          fe_sbom_hash=$(sha256sum ./packages/fe/manifest.spdx.json | awk '{print $1}')
+          echo "fe-sbom-hash-code=$fe_sbom_hash" >> $GITHUB_OUTPUT
+
+  sbom-attach:
+    name: Attach SBOM file
+    runs-on: ubuntu-latest
+    needs:
+      - sbom-create
+      - pack
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Download the API SBOM
+        uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/actions/secure-download-artifact@main
+        with:
+          name: "AdminApp.Api-SBOM"
+          path: packages/api/manifest.spdx.json
+          sha256: "${{ needs.sbom-create.outputs.api-sbom-hash-code }}"
+
+      - name: Download the Frontend SBOM
+        uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/actions/secure-download-artifact@main
+        with:
+          name: "AdminApp.FrontEnd-SBOM"
+          path: packages/fe/manifest.spdx.json
+          sha256: "${{ needs.sbom-create.outputs.fe-sbom-hash-code }}"
+
+      - name: Attach API SBOM to release
+        shell: pwsh
+        run: |
+          $release = "${{ github.ref_name }}"
+          $repo = "${{ github.repository }}"
+          $token = "${{ secrets.GITHUB_TOKEN }}"
+          $file = "packages/api/manifest.spdx.json"
+          $uploadName = "AdminApp.Api-SBOM.zip"
+
+          $url = "https://api.github.com/repos/$repo/releases/tags/$release"
+          $gh_headers = @{
+              "Accept"        = "application/vnd.github+json"
+              "Authorization" = "Bearer $token"
+          }
+          $response = Invoke-RestMethod -Uri $url -Headers $gh_headers
+          $releaseId = $response.id
+          $url = "https://uploads.github.com/repos/$repo/releases/$releaseId/assets"
+
+          Compress-Archive $file -DestinationPath $uploadName
+          $gh_headers["Content-Type"] = "application/octet"
+          Invoke-RestMethod -Method POST `
+              -Uri "$($url)?name=$($uploadName)" `
+              -Headers $gh_headers `
+              -InFile $uploadName
+
+      - name: Attach Frontend SBOM to release
+        shell: pwsh
+        run: |
+          $release = "${{ github.ref_name }}"
+          $repo = "${{ github.repository }}"
+          $token = "${{ secrets.GITHUB_TOKEN }}"
+          $file = "packages/fe/manifest.spdx.json"
+          $uploadName = "AdminApp.FrontEnd-SBOM.zip"
+
+          $url = "https://api.github.com/repos/$repo/releases/tags/$release"
+          $gh_headers = @{
+              "Accept"        = "application/vnd.github+json"
+              "Authorization" = "Bearer $token"
+          }
+          $response = Invoke-RestMethod -Uri $url -Headers $gh_headers
+          $releaseId = $response.id
+          $url = "https://uploads.github.com/repos/$repo/releases/$releaseId/assets"
+
+          Compress-Archive $file -DestinationPath $uploadName
+          $gh_headers["Content-Type"] = "application/octet"
+          Invoke-RestMethod -Method POST `
+              -Uri "$($url)?name=$($uploadName)" `
+              -Headers $gh_headers `
+              -InFile $uploadName
+
+  provenance-api:
+    name: Create Provenance for API
+    needs: pack
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: ${{ needs.pack.outputs.api-tgz-hash }}
+      provenance-name: AdminApp.Api.intoto.jsonl
+      upload-assets: true
+      compile-generator: true
+
+  provenance-fe:
+    name: Create Provenance for FrontEnd
+    needs: pack
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: Ed-Fi-Alliance-OSS/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: ${{ needs.pack.outputs.fe-tgz-hash }}
+      provenance-name: AdminApp.FrontEnd.intoto.jsonl
+      upload-assets: true
+      compile-generator: true
+
+  docker-publish:
+    name: Publish to Docker Hub
+    runs-on: ubuntu-latest
+    needs:
+      - publish-package
+    steps:
+      - name: Wait 20s
+        # Give Azure Artifacts caching a moment to catch up
+        run: sleep 20
+
+      - name: Prepare Tags
+        id: prepare-tags
+        run: |
+          REF="${{ env.REF }}"
+          if [[ $REF =~ "Pre-Release" ]]
+          then
+             # Remove Pre-Release prefix
+             PREFIX="Pre-Release-"
+             PACKAGEVERSION=${REF#"$PREFIX"}
+          else
+             PACKAGEVERSION=${REF}
+          fi
+
+          if [[ $PACKAGEVERSION =~ "alpha" ]]
+          then
+            # Pre-releases get the tag "pre"
+            APITAGS="${{ env.IMAGE_NAME }}:pre"
+            FETAGS="${{ env.FRONTEND_IMAGE_NAME }}:pre"
+          else
+            # Releases get the version, plus shortened form for minor release.
+            # We are not using shortened form for major or using "latest"
+            # because they are too imprecise.
+            MINOR=`echo ${PACKAGEVERSION} | awk -F"." '{print $1"."$2}'`
+            APITAGS="${{ env.IMAGE_NAME }}:${PACKAGEVERSION},${{ env.IMAGE_NAME }}:${MINOR}"
+            FETAGS="${{ env.FRONTEND_IMAGE_NAME }}:${PACKAGEVERSION},${{ env.FRONTEND_IMAGE_NAME }}:${MINOR}"
+          fi
+
+          SEMVERSION=${PACKAGEVERSION:1}  # strip off the leading 'v'
+          echo "APITAGS=$APITAGS" >> $GITHUB_OUTPUT
+          echo "FETAGS=$FETAGS" >> $GITHUB_OUTPUT
+          echo "VERSION=$SEMVERSION" >> $GITHUB_OUTPUT
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567  # v3.3.0
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_HUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5  # v3.8.0
+
+      - name: Extract metadata (tags, labels) for admin-app api image
+        id: metaapi
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96  # v5.6.1
+        with:
+          images: ${{ env.IMAGE_NAME }}
+
+      - name: Build and push admin-app api image
+        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc  # v6.11.0
+        with:
+          context: "{{defaultContext}}:packages/api"
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:pre
+          cache-to: type=inline
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.prepare-tags.outputs.VERSION }}
+            ADMIN_API_VERSION=${{ steps.prepare-tags.outputs.VERSION }}
+          file: Dockerfile
+          tags: ${{ steps.prepare-tags.outputs.APITAGS }}
+          labels: ${{ steps.metaapi.outputs.labels }}
+          push: true
+
+      - name: Extract metadata (tags, labels) for admin-app front end image
+        id: metafe
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96  # v5.6.1
+        with:
+          images: ${{ env.FRONTEND_IMAGE_NAME }}
+
+      - name: Build and push admin-app front end image
+        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc  # v6.11.0
+        with:
+          context: "{{defaultContext}}:packages/fe"
+          cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE_NAME }}:pre
+          cache-to: type=inline
+          build-args: ADMIN_API_VERSION=${{ steps.prepare-tags.outputs.VERSION }}
+          file: Dockerfile
+          tags: ${{ steps.prepare-tags.outputs.FETAGS }}
+          labels: ${{ steps.metafe.outputs.labels }}
+          push: true
