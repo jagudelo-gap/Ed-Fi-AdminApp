@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Link as RouterLink, generatePath, useMatches, useParams } from 'react-router-dom';
 import { flatRoutes } from '../routes';
+import {config} from '../../../typings/config';
 
 export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   const matches = useMatches();
@@ -28,7 +29,7 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
   useEffect(() => {
     // This non-reactive approach is ugly, but it's harmless and a way to avoid making the structure of the breadcrumb functions into a big deal.
     const titlePoll = setInterval(() => {
-      const applicationName = import.meta.env.VITE_APPLICATION_NAME;
+      const applicationName = config.applicationName || 'Ed-Fi Admin App';
       if (terminalItemRef?.innerText !== undefined) {
         document.title =
           terminalItemRef?.innerText === 'Home'

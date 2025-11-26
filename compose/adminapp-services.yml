@@ -103,19 +103,19 @@ services:
     build:
       context: ../
       dockerfile: packages/fe/Dockerfile
-      args:
+    environment:
         # Change this to use the nginx proxy URL
-        VITE_API_URL: '${VITE_API_URL:-https://localhost/adminapp-api}'
+        VITE_API_URL: ${VITE_API_URL:-https://localhost/adminapp-api}
         VITE_OIDC_ID: ${VITE_OIDC_ID:-1}
-        VITE_BASE_PATH: '${VITE_BASE_PATH:-/adminapp/}'
-        VITE_HELP_GUIDE: '${VITE_HELP_GUIDE:-https://docs.ed-fi.org/}'
-        VITE_IDP_ACCOUNT_URL: '${VITE_IDP_ACCOUNT_URL:-https://localhost/auth/realms/edfi/account/}'
-        VITE_STARTING_GUIDE: '${VITE_STARTING_GUIDE:-${VITE_HELP_GUIDE}reference/admin-app-v4/system-administrators/global-administration-tasks}'
-        VITE_CONTACT: '${VITE_CONTACT:-https://community.ed-fi.org/}'
-        VITE_APPLICATION_NAME: '${VITE_APPLICATION_NAME:-Ed-Fi Admin App}'
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/adminapp/}
+        VITE_HELP_GUIDE: ${VITE_HELP_GUIDE:-https://docs.ed-fi.org/}
+        VITE_IDP_ACCOUNT_URL: ${VITE_IDP_ACCOUNT_URL:-https://localhost/auth/realms/edfi/account/}
+        VITE_STARTING_GUIDE: ${VITE_STARTING_GUIDE:-${VITE_HELP_GUIDE}reference/admin-app-v4/system-administrators/global-administration-tasks}
+        VITE_CONTACT: ${VITE_CONTACT:-https://community.ed-fi.org/}
+        VITE_APPLICATION_NAME: ${VITE_APPLICATION_NAME:-Ed-Fi Admin App}
     container_name: edfiadminapp-fe
     volumes:
-      - ./adminapp/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./adminapp/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       edfiadminapp-api:
         condition: service_healthy

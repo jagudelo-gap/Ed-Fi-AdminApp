@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { ClassConstructor, instanceToPlain, plainToInstance } from 'class-transformer';
+import { config } from '../../../typings/config';
 
-export const API_URL: string = import.meta.env.VITE_API_URL.endsWith("/api") ? import.meta.env.VITE_API_URL : `${import.meta.env.VITE_API_URL}/api`;
-export const IDP_ACCOUNT_URL: string = import.meta.env.VITE_IDP_ACCOUNT_URL || 'https://localhost/auth/realms/edfi/account/';
+export const API_URL: string = config.apiUrl.endsWith("/api") ? config.apiUrl : `${config.apiUrl}/api`;
+export const IDP_ACCOUNT_URL: string = config.idpAccountUrl || 'https://localhost/auth/realms/edfi/account/';
 axios.defaults.baseURL = API_URL;
 
 export const apiClient = axios.create({
@@ -15,10 +16,10 @@ apiClient.interceptors.response.use(
     if ([401].includes(error?.response?.status)) {
       console.log('Redirecting to login');
       // Get the OIDC ID from environment or default to 1
-      const oidcId = import.meta.env.VITE_OIDC_ID || 1;
+      const oidcId = config.oidcId || 1;
 
       // Get the current path relative to the base path
-      const basePath = import.meta.env.VITE_BASE_PATH || '/';
+      const basePath = config.basePath || '/';
       let currentPath = window.location.pathname;
 
       // If current path includes the base path, strip the base path to prevent duplication

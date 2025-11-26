@@ -5,7 +5,8 @@ import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
-  base: process.env.VITE_BASE_PATH || '/',
+  // Relative base so asset URLs are emitted without root slash; runtime base script may override routing context.
+  base: './',
   root: __dirname,
   build: {
     outDir: '../../dist/packages/fe',

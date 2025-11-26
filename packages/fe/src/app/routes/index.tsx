@@ -7,6 +7,7 @@ import { PublicAppLayout } from '../Layout/PublicAppLayout';
 import { StandardLayout } from '../Layout/StandardLayout';
 import { TeamHome } from '../Pages/Home/TeamHome';
 import { useSearchParamsObject } from '../helpers/useSearch';
+import {config} from '../../../typings/config';
 
 import { accountRouteGlobal } from './account.routes';
 import {
@@ -175,7 +176,7 @@ const Login = memo(() => {
   const { redirect } = useSearchParamsObject() as any;
   useEffect(() => {
     // TODO the backend supports multiple (trusted) IdPs, so maybe we should support that here with some kind of login screen
-    window.location.href = `${API_URL}/auth/login/${import.meta.env.VITE_OIDC_ID || 1}${
+    window.location.href = `${API_URL}/auth/login/${config.oidcId || 1}${
       redirect ? `?redirect=${redirect}` : ''
     }`;
   }, []);
@@ -370,7 +371,7 @@ routes.forEach(addPathToHandle);
 const flattenRoute = (r: RouteObject): RouteObject[] =>
   [r, ...(r.children ?? []).map((route) => flattenRoute(route))].flat();
 const router = createBrowserRouter(routes, {
-  basename: import.meta.env.VITE_BASE_PATH || '/'
+  basename: config.basePath || '/'
 });
 export const flatRoutes = routes.flatMap(flattenRoute);
 export const Routes = () => {

@@ -1,5 +1,6 @@
 import { ButtonGroup, Button } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
+import {config} from '../../../typings/config';
 
 export const LandingContent = () => (
   <ButtonGroup size="lg" gap={10}>
@@ -20,7 +21,7 @@ export const LandingContent = () => (
       variant="outline"
       colorScheme="blue"
       as={RouterLink}
-      to={import.meta.env.VITE_ADMINAPP_HELP_GUIDE || "https://docs.ed-fi.org/reference/admin-app-v4/"}
+      to={config.helpGuide || "https://docs.ed-fi.org/reference/admin-app-v4/"}
     >
       Learn more
     </Button>

@@ -3,13 +3,39 @@
   <head>
     <meta charset="utf-8" />
     <title>Ed-Fi Admin App</title>
-    <base href="/" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/src/assets/favicon.ico" />
+  <link rel="icon" href="src/assets/favicon.ico" />
+  <script src="config.js"></script>
+  <script>
+    // Dynamically adjust <base> using runtime config if provided.
+    (function() {
+      try {
+        var cfg = window.__APP_CONFIG__ || {};
+        var raw = cfg.VITE_BASE_PATH;
+        if (!raw) return; // leave existing base
+        // normalize
+        if (raw === '.') raw = '/';
+        if (!raw.startsWith('/')) raw = '/' + raw;
+        if (!raw.endsWith('/')) raw += '/';
+        var baseEl = document.querySelector('base');
+        if (!baseEl) {
+          baseEl = document.createElement('base');
+          document.head.insertBefore(baseEl, document.head.firstChild);
+        }
+        baseEl.setAttribute('href', raw);
+        // Optional debug
+        if (cfg.VITE_LOG_CONFIG === 'true') {
+          console.info('[runtime-base] Applied base path', raw);
+        }
+      } catch (e) {
+        console.warn('[runtime-base] Failed to set base path', e);
+      }
+    })();
+  </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <script type="module" src="src/main.tsx"></script>
   </body>
 </html>

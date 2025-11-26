@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL } from '../api/methods';
+import {config} from '../../../typings/config';
 
 axios.defaults.baseURL = API_URL;
 
@@ -13,10 +14,10 @@ apiClient.interceptors.response.use(
     if ([401].includes(error?.response?.status)) {
       console.info('Redirecting to login');
       // Get the OIDC ID from environment or default to 1
-      const oidcId = import.meta.env.VITE_OIDC_ID || 1;
+      const oidcId = config.oidcId || 1;
 
       // Get the current path relative to the base path
-      const basePath = import.meta.env.VITE_BASE_PATH || '/';
+      const basePath = config.basePath || '/';
       let currentPath = window.location.pathname;
 
       // If current path includes the base path, strip the base path to prevent duplication
