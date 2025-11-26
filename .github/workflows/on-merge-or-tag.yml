@@ -7,7 +7,7 @@ name: On Merge to Main or Releasable Tag
 on:
   push:
     branches:
-      - develop
+      - main
     tags:
       - "v*.*.*"
 
