@@ -13,7 +13,7 @@ on:
 
 env:
   API_URL: https://api.github.com/repos/${{ github.repository }}
-  TOKEN: ${{ secrets.EDFI_BUILD_AGENT_PAT }}
+  TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 permissions: read-all
 
@@ -46,7 +46,7 @@ jobs:
 
           "admin-app=$($apiPrefix)$(minver -t $apiPrefix)" >> $env:GITHUB_OUTPUT
 
-      - name: Create Admin API Pre-Release
+      - name: Create Admin App Pre-Release
         run: |
           $version = "${{ steps.versions.outputs.admin-app }}"
           $tag = $version -replace "v","Pre-Release-v"
