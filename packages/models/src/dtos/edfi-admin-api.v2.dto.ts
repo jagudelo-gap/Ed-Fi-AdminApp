@@ -124,8 +124,29 @@ export class PostApiClientDtoV2 {
   isApproved: boolean;
 }
 
-export class PutApiClientDtoV2 extends PostApiClientDtoV2 {
+export class PutApiClientDtoV2 {
+  @Expose()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  name: string;
+
+  @Expose()
+  @IsBoolean()
+  isApproved: boolean;
+
+  @Expose()
+  @IsNumber()
   id: number;
+
+  @Expose()
+  @IsNumber()
+  applicationId: number;
+
+  @Expose()
+  @IsNumber(undefined, { each: true })
+  @ArrayNotEmpty()
+  odsInstanceIds: number[];
 }
 
 export class PostApiClientResponseDtoV2 extends PostApiClientResponseDtoBase {
@@ -155,8 +176,28 @@ export class PostApiClientFormDtoV2 {
   odsInstanceId: number;
 }
 
-export class PutApiClientFormDtoV2 extends PostApiClientFormDtoV2 {
+export class PutApiClientFormDtoV2 {
+  @Expose()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  name: string;
+
+  @Expose()
+  @IsBoolean()
+  isApproved: boolean;
+
+  @Expose()
+  @IsNumber()
+  odsInstanceId: number;
+
+  @Expose()
+  @IsNumber()
   id: number;
+
+  @Expose()
+  @IsNumber()
+  applicationId: number;
 }
 
 export const toGetApiClientDtoV2 = makeSerializer(GetApiClientDtoV2);

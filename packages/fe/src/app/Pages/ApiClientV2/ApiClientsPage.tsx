@@ -21,10 +21,9 @@ export const ApiClientsPageV2 = () => {
 
 export const ApiClientsPageActions = () => {
   const params = useParams() as { applicationId: string };
-  const { edfiTenantId, asId } = useTeamEdfiTenantNavContextLoaded();
+  const { asId } = useTeamEdfiTenantNavContextLoaded();
 
   const actions = useMultiApiClientsActions({
-    edfiTenantId: edfiTenantId,
     teamId: asId,
     applicationId: Number(params.applicationId),
   });

@@ -86,9 +86,34 @@ export const apiClientQueriesV2 = new EntityQueryBuilder({
         id: base.id,
       });
     })
-  .put('put', { ResDto: GetApiClientDtoV2, ReqDto: PutApiClientDtoV2 })
-  .post('post', { ResDto: undefined as unknown as ApiClientResponseV2, ReqDto: PostApiClientResponseDtoV2 })
-  .delete('delete')
+  .put(
+    'put',
+    { ResDto: GetApiClientDtoV2, ReqDto: PutApiClientDtoV2 },
+    (base) =>
+      standardPath({
+        edfiTenant: base.edfiTenant,
+        teamId: base.teamId,
+        kebabCaseName: 'apiclient',
+        adminApi: true,
+        id: base.entity.id,
+      })
+  )
+  .post(
+    'post',
+    { ResDto: undefined as unknown as ApiClientResponseV2, ReqDto: PostApiClientResponseDtoV2 },
+  )
+  .delete(
+    'delete',
+    {},
+    (base) =>
+      standardPath({
+        edfiTenant: base.edfiTenant,
+        teamId: base.teamId,
+        kebabCaseName: 'apiclient',
+        adminApi: true,
+        id: base.id,
+      })
+  )
   .build();
 
 export const claimsetQueriesV2 = new EntityQueryBuilder({

@@ -14,6 +14,7 @@ import {
   PostOdsInstanceDtoV2,
   PostProfileDtoV2,
   PostVendorDtoV2,
+  PutApiClientDtoV2,
   PutApplicationDtoV2,
   PutClaimsetDtoV2,
   PutClaimsetResourceClaimActionsDtoV2,
@@ -425,6 +426,19 @@ export class AdminApiServiceV2 {
         .catch((err) => {
           this.logger.error(
             `Error getting API client ${apiClientId} for tenant ${edfiTenant.id}: ${err}`
+          );
+          throw err;
+        })) as any
+    );
+  }
+
+  async putApiClient(edfiTenant: EdfiTenant, apiClientId: number, apiClient: PutApiClientDtoV2) {
+    return toGetApiClientDtoV2(
+      (await this.getAdminApiClient(edfiTenant)
+        .put(`apiclients/${apiClientId}`, apiClient)
+        .catch((err) => {
+          this.logger.error(
+            `Error updating API client ${apiClientId} for tenant ${edfiTenant.id}: ${err}`
           );
           throw err;
         })) as any

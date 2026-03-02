@@ -8,6 +8,7 @@ import {
   ImportClaimsetSingleDtoV2,
   PostApplicationDtoV2,
   PostApplicationFormDtoV2,
+  PutApiClientDtoV2,
   PostClaimsetDtoV2,
   PostProfileDtoV2,
   PostVendorDtoV2,
@@ -717,6 +718,41 @@ export class AdminApiControllerV2 {
       throw new NotFoundException();
     }
     return await this.sbService.getApiClient(edfiTenant, apiClientId);
+  }
+
+  @Put('apiclients/:apiclientId')
+  @Authorize({
+    privilege: 'team.sb-environment.edfi-tenant.ods.edorg.application:update',
+    subject: {
+      id: '__filtered__',
+      edfiTenantId: 'edfiTenantId',
+      teamId: 'teamId',
+    },
+  })
+  async putApiClient(
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @Param('teamId', new ParseIntPipe()) teamId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @Param('apiclientId', new ParseIntPipe()) apiClientId: number,
+    @Body() apiClient: PutApiClientDtoV2,
+    @InjectFilter('team.sb-environment.edfi-tenant.ods.edorg.application:update')
+    validIds: Ids
+  ) {
+    if (!checkId(apiClientId, validIds)) {
+      throw new NotFoundException();
+    }
+
+    const existingApiClient = await this.sbService.getApiClient(edfiTenant, apiClientId);
+    if (
+      existingApiClient &&
+      existingApiClient.applicationId !== apiClient.applicationId
+    ) {
+      throw new BadRequestException(
+        'The applicationId in the request body must match the existing API client applicationId.'
+      );
+    }
+
+    return await this.sbService.putApiClient(edfiTenant, apiClientId, apiClient);
   }
 
   //
