@@ -183,7 +183,7 @@
     "react-refresh": "^0.18.0",
     "rollup-plugin-visualizer": "^5.9.2",
     "semantic-release": "^25.0.2",
-    "storybook": "8.6.14",
+    "storybook": "8.6.18",
     "supertest": "^6.3.4",
     "ts-jest": "29.4.6",
     "ts-node": "^10.9.2",
