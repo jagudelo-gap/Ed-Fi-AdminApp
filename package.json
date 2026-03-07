@@ -63,7 +63,7 @@
     "auth0": "^4.30.0",
     "aws-jwt-verify": "^4.0.0",
     "aws4-axios": "^3.4.0",
-    "axios": "^1.13.1",
+    "axios": "^1.13.6",
     "chakra-react-select": "^4.6.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
