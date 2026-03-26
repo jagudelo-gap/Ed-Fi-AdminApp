@@ -22,7 +22,7 @@ import {
   NotFoundException,
   Param,
   Query,
-  Request as Req, // TODO: can Req just be used here?
+  Request as Req,
   Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -53,7 +53,7 @@ export class AuthController {
   throwOnBearerToken({ request, route }: { request: Request; route: string }) {
     const [type] = request.headers['authorization']?.split(' ') ?? [];
     if (type === 'Bearer') {
-      throw new BadRequestException(`Bearer token authentication is not supported for ${route}.`);
+      throw new BadRequestException(`Bearer token authentication not supported for ${route}.`);
     }
   }
 
