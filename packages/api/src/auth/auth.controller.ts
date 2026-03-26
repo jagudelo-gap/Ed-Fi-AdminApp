@@ -22,7 +22,7 @@ import {
   NotFoundException,
   Param,
   Query,
-  Request as Req, // TODO: can Req just be used here?
+  Request as Req,
   Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
