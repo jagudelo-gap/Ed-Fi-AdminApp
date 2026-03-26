@@ -7,7 +7,7 @@ enum Test {
 }
 
 describe('enum-values', () => {
-  it('should get keys but not names', () => {
+  it('should get keys, but not names', () => {
     expect(enumValues(Test)).toEqual(['0', '1', '2']);
   });
 });
