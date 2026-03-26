@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { DatabaseConfigService } from '../database/database-config.service';
 import { HealthService } from './health.service';
 
