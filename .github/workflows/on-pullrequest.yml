@@ -2,9 +2,9 @@ name: On Pull Request
 
 on:
   push:
-    branches: [main, "patch-v*.*.*"]
+    branches: [main, "patch-v*"]
   pull_request:
-    branches: [main, "patch-v*.*.*", "dependabot/*"]
+    branches: [main, "patch-v*", "dependabot/**"]
   workflow_dispatch:
 
 # Adopt standard concurrency pattern
