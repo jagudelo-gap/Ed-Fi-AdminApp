@@ -53,7 +53,7 @@ export class AuthController {
   throwOnBearerToken({ request, route }: { request: Request; route: string }) {
     const [type] = request.headers['authorization']?.split(' ') ?? [];
     if (type === 'Bearer') {
-      throw new BadRequestException(`Bearer token authentication is not supported for ${route}.`);
+      throw new BadRequestException(`Bearer token authentication not supported for ${route}.`);
     }
   }
 
