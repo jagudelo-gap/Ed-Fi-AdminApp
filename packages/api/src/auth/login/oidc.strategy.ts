@@ -19,9 +19,28 @@ export class RegisterOidcIdpsService {
       oidcs.forEach(async (oidcConfig) => {
         let client: BaseClient;
         try {
-          const TrustIssuer = await Issuer.discover(
-            `${oidcConfig.issuer}/.well-known/openid-configuration`
-          );
+          // Try to discover OIDC provider, attempting multiple URLs for compatibility
+          const discoveryUrls = this.getDiscoveryUrls(oidcConfig.issuer);
+          let TrustIssuer: Issuer;
+          let lastError: Error | null = null;
+
+          for (const discoveryUrl of discoveryUrls) {
+            try {
+              Logger.debug(`Attempting OIDC discovery at ${discoveryUrl}`);
+              TrustIssuer = await Issuer.discover(discoveryUrl);
+              Logger.log(`Successfully discovered OIDC provider at ${discoveryUrl}`);
+              break;
+            } catch (err) {
+              lastError = err as Error;
+              Logger.debug(`Failed to discover at ${discoveryUrl}: ${err}`);
+              continue;
+            }
+          }
+
+          if (!TrustIssuer) {
+            throw lastError || new Error('Could not discover OIDC provider with any URL');
+          }
+
           client = new TrustIssuer.Client({
             client_id: oidcConfig.clientId,
             client_secret: oidcConfig.clientSecret,
@@ -81,6 +100,32 @@ export class RegisterOidcIdpsService {
         }
       });
     });
+  }
+
+  /**
+   * Generate a list of discovery URLs to try for a given issuer.
+   * This handles both internal Docker container URLs and external URLs.
+   * @param issuer The issuer URL (typically external URL like https://localhost/auth/realms/edfi)
+   * @returns Array of discovery URLs to try
+   */
+  private getDiscoveryUrls(issuer: string): string[] {
+    const urls: string[] = [];
+
+    // If issuer contains localhost or 127.0.0.1 with /auth path, also try internal container URL
+    if (issuer.includes('/auth/realms/')) {
+      // Extract realm name from issuer
+      const realmMatch = issuer.match(/\/auth\/realms\/([^\/]+)/);
+      if (realmMatch) {
+        const realmName = realmMatch[1];
+        // Try internal Docker container URL first (more likely to work from within container)
+        urls.push(`http://edfiadminapp-keycloak:8080/auth/realms/${realmName}/.well-known/openid-configuration`);
+      }
+    }
+
+    // Always try the provided issuer URL
+    urls.push(`${issuer}/.well-known/openid-configuration`);
+
+    return urls;
   }
 }
 
