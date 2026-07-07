@@ -55,7 +55,7 @@ jobs:
         run: |
           cd compose
           cp .env.example .env
-          ./start-local-dev-target.ps1 -V6 -OdsV7AdminV2 -IncludeAdminApp -Rebuild
+          ./start-local-dev-target.ps1 -V6 -IncludeAdminApp -Rebuild
 
       - name: Wait for Admin App API and FE
         run: |
