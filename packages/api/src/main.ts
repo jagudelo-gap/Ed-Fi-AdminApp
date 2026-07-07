@@ -251,6 +251,16 @@ async function bootstrap() {
     })
   );
   const port = config.API_PORT;
+
+  // Log critical configuration for debugging
+  Logger.log(`=== Critical API Configuration ===`);
+  Logger.log(`API_PORT: ${port}`);
+  Logger.log(`MY_URL: ${config.MY_URL}`);
+  Logger.log(`MY_URL_API_PATH: ${config.MY_URL_API_PATH}`);
+  Logger.log(`FE_URL: ${config.FE_URL}`);
+  Logger.log(`DB_ENGINE: ${config.DB_ENGINE}`);
+  Logger.log(`===================================`);
+
   if (config.OPEN_API) {
     if (process.env.NODE_ENV === 'production') {
       Logger.warn(
