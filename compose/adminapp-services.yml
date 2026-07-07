@@ -12,8 +12,8 @@ services:
     volumes:
       - vol-edfiadminapp-keycloak:/opt/keycloak/data
       - ./adminapp/healthcheck.sh:/opt/keycloak/healthcheck.sh
-       # Bind-mount realm template for sed-based rendering at startup
-      - ./adminapp/realm-config.json:/tmp/realm-config.tmpl:ro
+      # Bind-mount realm template for sed-based rendering at startup
+      - ${KEYCLOAK_REALM_CONFIG_TEMPLATE:-./adminapp/realm-config.json}:/tmp/realm-config.tmpl:ro
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
@@ -22,12 +22,15 @@ services:
       KC_HTTP_RELATIVE_PATH: /auth
       KC_HTTP_ENABLED: true
       KC_PROXY_HEADERS: xforwarded
-      KC_LOG_CONSOLE_LEVEL: ${KC_LOG_CONSOLE_LEVEL:-error}
+      KC_LOG_CONSOLE_LEVEL: ${KC_LOG_CONSOLE_LEVEL:-debug}
       KC_LOG: file,console
       KC_HEALTH_ENABLED: true
+      # Additional debug options
+      KC_LOG_LEVEL: ${KC_LOG_LEVEL:-info}
       # Variables used to render /tmp/realm-config.tmpl via sed
       BASE_URL: ${BASE_URL:-https://localhost}
       BASE_URL_DEV: ${BASE_URL_DEV:-http://localhost:3333}
+      KEYCLOAK_REALM_CONFIG_TEMPLATE: ${KEYCLOAK_REALM_CONFIG_TEMPLATE:-./adminapp/realm-config.json}
       KEYCLOAK_EDFIADMINAPP_CLIENT_SECRET: ${KEYCLOAK_EDFIADMINAPP_CLIENT_SECRET:-adminapp-secret}
       KEYCLOAK_EDFIADMINAPP_DEV_CLIENT_SECRET: ${KEYCLOAK_EDFIADMINAPP_DEV_CLIENT_SECRET:-adminapp-dev-secret}
     entrypoint:
