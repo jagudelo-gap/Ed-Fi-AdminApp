@@ -169,12 +169,15 @@ jobs:
         run: npx bddgen --config=./playwright.config.ts && npx playwright test main.feature
 
       - name: Docker logs edfiadminapp-api
+        if: always()
         run: docker logs edfiadminapp-api
 
       - name: Docker logs edfiadminapp-fe
+        if: always()
         run: docker logs edfiadminapp-fe
 
       - name: Docker logs edfiadminapp-keycloak
+        if: always()
         run: docker logs edfiadminapp-keycloak
 
       - name: Upload E2E JUnit results
