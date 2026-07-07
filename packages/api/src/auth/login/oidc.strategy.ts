@@ -60,34 +60,39 @@ export class RegisterOidcIdpsService {
             },
             async (_: TokenSet, userinfo, done) => {
               let username: string | undefined = undefined;
-              if (typeof userinfo.email !== 'string' || userinfo.email === '') {
-                throw new Error('Invalid email from IdP');
-              } else {
-                username = userinfo.email;
-              }
-
               try {
+                if (typeof userinfo.email !== 'string' || userinfo.email === '') {
+                  Logger.error(`LOGIN_ERROR Invalid or missing email from IdP: ${JSON.stringify(userinfo)}`);
+                  return done(new Error('Invalid email from IdP'), false);
+                }
+                username = userinfo.email;
+
                 const user: User = await this.authService.validateUser({ username });
                 const emailDomain = username.substring(username.lastIndexOf('@') + 1).toLowerCase();
                 const isEaUser = emailDomain === 'edanalytics.org';
+
                 if (user === null) {
                   if (!isEaUser) {
                     Logger.warn(`LOGIN_ERROR User [${username}] not found in database`);
                   }
                   return done(new Error(USER_NOT_FOUND), false);
-                } else if (user.roleId === null || user.roleId === undefined) {
+                }
+
+                if (user.roleId === null || user.roleId === undefined) {
                   if (!isEaUser) {
                     Logger.warn(`LOGIN_ERROR No role assigned for User [${username}]`);
                   }
                   return done(new Error(NO_ROLE), false);
-                } else {
-                  if (!user.userTeamMemberships || user.userTeamMemberships.length === 0) {
-                    if (!isEaUser) {
-                      Logger.warn(`LOGIN_ERROR No team memberships assigned for User [${username}]`);
-                    }
-                  }
-                  return done(null, user);
                 }
+
+                if (!user.userTeamMemberships || user.userTeamMemberships.length === 0) {
+                  if (!isEaUser) {
+                    Logger.warn(`LOGIN_WARNING No team memberships assigned for User [${username}], but login will proceed`);
+                  }
+                }
+
+                Logger.log(`LOGIN_SUCCESS User [${username}] authenticated successfully with role ${user.roleId}`);
+                return done(null, user);
               } catch (err) {
                 Logger.error(`Database error during authentication for user [${username}]:`, err);
                 // Return a database error to trigger appropriate error handling
