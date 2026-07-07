@@ -158,7 +158,8 @@ jobs:
           docker exec edfiadminapp-postgres psql -U postgres -d sbaa -c 'SELECT id, "clientId" FROM public.oidc LIMIT 5;' | Write-Host
 
           Write-Host "Verifying user record..."
-          docker exec edfiadminapp-postgres psql -U postgres -d sbaa -c "SELECT id, username, \"roleId\", \"isActive\" FROM public.\"user\" WHERE username = 'admin@example.com';" | Write-Host
+          $userQuery = 'SELECT id, username, "roleId", "isActive" FROM public."user" WHERE username = ''admin@example.com'';'
+          docker exec edfiadminapp-postgres psql -U postgres -d sbaa -c $userQuery | Write-Host
           docker exec edfiadminapp-postgres psql -U postgres -d sbaa -c 'SELECT id, name, type FROM public.role ORDER BY id;' | Write-Host
 
       - name: Run Playwright BDD E2E tests
