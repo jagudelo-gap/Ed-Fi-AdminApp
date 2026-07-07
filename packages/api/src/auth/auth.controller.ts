@@ -98,36 +98,59 @@ export class AuthController {
       redirect = this.validateRedirectUrl(state.redirect);
     } catch (error) {
       // Use default redirect
+      Logger.debug(`Could not parse state from callback: ${error}`);
     }
+
+    Logger.log(`OIDC callback initiated for oidcId: ${oidcId}, redirect: ${redirect}`);
+
     passport.authenticate(`oidc-${oidcId}`, {
       successRedirect: `${config.FE_URL}${redirect}`,
       failureRedirect: `${config.FE_URL}/unauthenticated`,
-    })(request, response, (error: Error) => {
-      Logger.error(error);
+    })(request, response, (error: Error | null | undefined) => {
+      if (!error) {
+        Logger.warn(`OIDC callback received with no error but custom handler was invoked. Redirecting to success.`);
+        response.redirect(`${config.FE_URL}${redirect}`);
+        return;
+      }
 
-      if (error.message === USER_NOT_FOUND) {
+      const errorMessage = error?.message || '';
+      const errorStack = error instanceof Error ? error.stack : '';
+
+      Logger.error(`OIDC callback error - Message: "${errorMessage}"`);
+      Logger.error(`OIDC callback error - Stack: ${errorStack}`);
+
+      if (errorMessage === USER_NOT_FOUND) {
+        Logger.warn(`User not found during OIDC callback`);
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=Oops, it looks like your user hasn't been created yet. We'll let you know when you can log in.`
         );
-      } else if (error.message === NO_ROLE) {
+      } else if (errorMessage === NO_ROLE) {
+        Logger.warn(`User has no role assigned during OIDC callback`);
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=Your login worked, but it looks like your setup isn't quite complete. We'll let you know when everything's ready.`
         );
-      } else if (
-        error.message?.startsWith('did not find expected authorization request details in session')
-      ) {
+      } else if (errorMessage?.startsWith('did not find expected authorization request details in session')) {
+        Logger.warn(`Authorization request details not found in session during OIDC callback`);
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=Login failed. There may be an issue, but please try again.`
         );
-      } else if (error.message?.startsWith('invalid_grant (Code not valid)')) {
+      } else if (errorMessage?.startsWith('invalid_grant (Code not valid)')) {
+        Logger.warn(`Invalid authorization code during OIDC callback`);
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=It looks like there was a hiccup during login. Please try again.`
         );
-      } else if (error.message?.includes('Database connection error')) {
+      } else if (errorMessage?.includes('Database connection error')) {
+        Logger.error(`Database connection error during OIDC callback`);
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=The system is temporarily unavailable. Please try again in a few moments.`
         );
+      } else if (errorMessage?.includes('Invalid email from IdP')) {
+        Logger.warn(`Invalid email received from IdP during OIDC callback`);
+        response.redirect(
+          `${config.FE_URL}/unauthenticated?msg=We received invalid information from the login provider. Please try again.`
+        );
       } else {
+        Logger.error(`OIDC callback encountered unexpected error: ${errorMessage}`);
         response.redirect(
           `${config.FE_URL}/unauthenticated?msg=It looks like your login was not successful. Please try again and contact us if the issue persists.`
         );
