@@ -16,12 +16,17 @@ export class RegisterOidcIdpsService {
     private readonly authService: AuthService
   ) {
     this.oidcRepo.find().then((oidcs) => {
+      Logger.log(`Found ${oidcs.length} OIDC provider(s) to register`);
+
       oidcs.forEach(async (oidcConfig) => {
         let client: BaseClient;
+        let TrustIssuer: Issuer | null = null;
+
         try {
+          Logger.log(`Initializing OIDC provider: id=${oidcConfig.id}, issuer=${oidcConfig.issuer}`);
+
           // Try to discover OIDC provider, attempting multiple URLs for compatibility
           const discoveryUrls = this.getDiscoveryUrls(oidcConfig.issuer);
-          let TrustIssuer: Issuer;
           let lastError: Error | null = null;
 
           for (const discoveryUrl of discoveryUrls) {
@@ -47,28 +52,44 @@ export class RegisterOidcIdpsService {
           });
         } catch (err) {
           Logger.error(`Error registering OIDC provider ${oidcConfig.issuer}: ${err}`);
+          Logger.error(`Error details: ${err instanceof Error ? err.stack : 'No stack trace'}`);
+          return;
         }
-        if (client) {
+
+        if (!client) {
+          Logger.error(`Failed to create OIDC client for provider ${oidcConfig.id}`);
+          return;
+        }
+
+        try {
+          Logger.log(`Setting up OIDC strategy for provider ${oidcConfig.id}:`);
+          Logger.log(`  - Redirect URI: ${config.MY_URL_API_PATH}/auth/callback/${oidcConfig.id}`);
+          Logger.log(`  - Scope: ${oidcConfig.scope || '(default)'}`);
+          Logger.log(`  - usePKCE: ${config.USE_PKCE}`);
+
           const strategy = new Strategy(
             {
               client,
               params: {
                 redirect_uri: `${config.MY_URL_API_PATH}/auth/callback/${oidcConfig.id}`,
-                scope: oidcConfig.scope,
+                scope: oidcConfig.scope || 'openid profile email',
               },
               usePKCE: config.USE_PKCE,
             },
-            async (_: TokenSet, userinfo, done) => {
+            async (_: TokenSet, userinfo: any, done: any) => {
               let username: string | undefined = undefined;
               try {
+                Logger.debug(`OIDC callback received. UserInfo: ${JSON.stringify(userinfo)}`);
+
                 if (typeof userinfo.email !== 'string' || userinfo.email === '') {
                   Logger.error(`LOGIN_ERROR Invalid or missing email from IdP: ${JSON.stringify(userinfo)}`);
                   return done(new Error('Invalid email from IdP'), false);
                 }
                 username = userinfo.email;
+                Logger.debug(`Processing login for user: ${username}`);
 
-                const user: User = await this.authService.validateUser({ username });
-                const emailDomain = username.substring(username.lastIndexOf('@') + 1).toLowerCase();
+                const user: User | null = await this.authService.validateUser({ username });
+                const emailDomain = username!.substring(username!.lastIndexOf('@') + 1).toLowerCase();
                 const isEaUser = emailDomain === 'edanalytics.org';
 
                 if (user === null) {
@@ -94,7 +115,8 @@ export class RegisterOidcIdpsService {
                 Logger.log(`LOGIN_SUCCESS User [${username}] authenticated successfully with role ${user.roleId}`);
                 return done(null, user);
               } catch (err) {
-                Logger.error(`Database error during authentication for user [${username}]:`, err);
+                Logger.error(`Database error during authentication for user [${username}]: ${err}`);
+                Logger.error(`Error stack: ${err instanceof Error ? err.stack : 'No stack trace'}`);
                 // Return a database error to trigger appropriate error handling
                 return done(new Error('Database connection error during authentication'), false);
               }
@@ -102,8 +124,15 @@ export class RegisterOidcIdpsService {
           );
           Logger.log(`Registering OIDC provider ${oidcConfig.issuer} with id ${oidcConfig.id}`);
           passport.use(`oidc-${oidcConfig.id}`, strategy);
+          Logger.log(`✓ OIDC strategy registered successfully for provider ${oidcConfig.id}`);
+        } catch (strategyErr) {
+          Logger.error(`Error creating OIDC strategy for provider ${oidcConfig.id}: ${strategyErr}`);
+          Logger.error(`Error details: ${strategyErr instanceof Error ? strategyErr.stack : 'No stack trace'}`);
         }
       });
+    }).catch((err) => {
+      Logger.error(`Error loading OIDC providers from database: ${err}`);
+      Logger.error(`Error details: ${err instanceof Error ? err.stack : 'No stack trace'}`);
     });
   }
 
