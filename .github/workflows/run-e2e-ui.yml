@@ -120,6 +120,7 @@ jobs:
           test -w playwright/.auth
 
       - name: Seed OIDC provider and admin user
+        if: false
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
