@@ -1,0 +1,197 @@
+# SPDX-License-Identifier: Apache-2.0
+# Licensed to the Ed-Fi Alliance under one or more agreements.
+# The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
+# See the LICENSE and NOTICES files in the project root for more information.
+
+name: UI Playwright E2E
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, "patch-v*"]
+    paths:
+      - tests/e2e/**
+      - playwright.config.ts
+      - package.json
+      - package-lock.json
+      - compose/**
+      - packages/fe/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  playwright-e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Setup Node 22.23.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22.23.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browser dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Create local TLS certificate
+        working-directory: ./compose/ssl
+        run: bash ./generate-certificate.sh
+
+      - name: Start Docker Compose services
+        shell: pwsh
+        run: |
+          cd compose
+          cp .env.example .env
+          ./start-local-dev-target.ps1 -V6 -OdsV7AdminV2 -IncludeAdminApp -Rebuild
+
+      - name: Wait for Admin App API and FE
+        run: |
+          set -euo pipefail
+
+          api_url="https://localhost/adminapp-api/api/healthcheck"
+          fe_url="https://localhost/adminapp/"
+          keycloak_url="https://localhost/auth/realms/edfi/.well-known/openid-configuration"
+
+          # Require consecutive successful checks to avoid transient "ready" states.
+          required_stable_checks=3
+          stable_checks=0
+
+          for i in {1..90}; do
+            api_ok=0
+            fe_ok=0
+            keycloak_ok=0
+
+            if curl -ksSf "$api_url" > /dev/null; then
+              api_ok=1
+            fi
+
+            if curl -ksSf "$fe_url" > /dev/null; then
+              fe_ok=1
+            fi
+
+            if curl -ksSf "$keycloak_url" > /dev/null; then
+              keycloak_ok=1
+            fi
+
+            if [ "$api_ok" -eq 1 ] && [ "$fe_ok" -eq 1 ] && [ "$keycloak_ok" -eq 1 ]; then
+              stable_checks=$((stable_checks + 1))
+              echo "Readiness OK ($stable_checks/$required_stable_checks)"
+            else
+              stable_checks=0
+              echo "Waiting... API=$api_ok FE=$fe_ok KEYCLOAK=$keycloak_ok ($i/90)"
+            fi
+
+            if [ "$stable_checks" -ge "$required_stable_checks" ]; then
+              echo "Admin App API, FE, and Keycloak are stable"
+              exit 0
+            fi
+
+            sleep 3
+          done
+
+          echo "Timed out waiting for stable Admin App services"
+          exit 1
+
+      - name: Prepare Playwright auth storage path
+        run: |
+          set -euo pipefail
+          if [ -e playwright/.auth ] && [ ! -d playwright/.auth ]; then
+            sudo rm -f playwright/.auth
+          fi
+          mkdir -p playwright/.auth
+          sudo chown -R "$(id -u):$(id -g)" playwright || true
+          chmod -R u+rwX,go+rwX playwright/.auth
+          ls -ld playwright playwright/.auth
+          touch playwright/.auth/.perm-check
+          rm -f playwright/.auth/.perm-check
+          test -w playwright/.auth
+
+      - name: Seed OIDC provider and admin user
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          # Ensure we're at workspace root
+          Set-Location $env:GITHUB_WORKSPACE
+
+          Write-Host "Current directory: $(Get-Location)"
+          Write-Host "Checking populate-oidc.ps1 exists..."
+
+          $script_path = "compose/settings/populate-oidc.ps1"
+          if (Test-Path $script_path) {
+            Write-Host "✓ Script found: $script_path"
+          } else {
+            Write-Host "Available files in compose/settings:"
+            if (Test-Path "compose/settings") {
+              Get-ChildItem "compose/settings" -Filter "*.ps1" | ForEach-Object { Write-Host "  - $_" }
+            } else {
+              Write-Host "Directory compose/settings not found!"
+            }
+            throw "Script not found at $script_path"
+          }
+
+          Write-Host "Running populate-oidc.ps1..."
+          try {
+            & $script_path -ClientId "edfiadminapp" -ClientSecret "big-secret-123" -Issuer "https://localhost/auth/realms/edfi" -Username "admin@example.com" -RoleId 2
+            Write-Host "✓ OIDC and user seed completed successfully"
+          } catch {
+            Write-Host "✗ Error during seed: $_"
+            Write-Host "Error details: $($_.Exception.Message)"
+            throw
+          }
+
+          # Verify the data was inserted
+          Write-Host "Verifying OIDC record..."
+          docker exec edfiadminapp-postgres psql -U postgres -d sbaa -c 'SELECT id, "clientId" FROM public.oidc LIMIT 5;' | Write-Host
+
+          Write-Host "Verifying user record..."
+          docker exec edfiadminapp-postgres psql -U postgres -d sbaa -c "SELECT id, username, \"roleId\", \"isActive\" FROM public.\"user\" WHERE username = 'admin@example.com';" | Write-Host
+          docker exec edfiadminapp-postgres psql -U postgres -d sbaa -c 'SELECT id, name, type FROM public.role ORDER BY id;' | Write-Host
+
+      - name: Run Playwright BDD E2E tests
+        env:
+          CI: true
+          PLAYWRIGHT_CHROMIUM_ARGS: --ignore-certificate-errors
+        run: npx bddgen --config=./playwright.config.ts && npx playwright test main.feature
+
+      - name: Upload E2E JUnit results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-junit-results
+          path: test-results/e2e
+          retention-days: 14
+
+      - name: Upload Allure raw results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-allure-results
+          path: test-results
+          retention-days: 14
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-playwright-report
+          path: playwright-report
+          retention-days: 14
+
+      - name: Stop services
+        if: always()
+        shell: pwsh
+        run: ./compose/stop.ps1
