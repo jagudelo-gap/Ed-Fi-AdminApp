@@ -43,5 +43,22 @@
       ],
       "protocol": "openid-connect"
     }
+  ],
+  "users": [
+    {
+      "username": "admin@example.com",
+      "email": "admin@example.com",
+      "firstName": "admin@example.com",
+      "lastName": "admin@example.com",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123",
+          "temporary": false
+        }
+      ]
+    }
   ]
 }
