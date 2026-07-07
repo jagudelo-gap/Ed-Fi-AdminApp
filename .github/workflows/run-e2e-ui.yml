@@ -168,6 +168,15 @@ jobs:
           PLAYWRIGHT_CHROMIUM_ARGS: --ignore-certificate-errors
         run: npx bddgen --config=./playwright.config.ts && npx playwright test main.feature
 
+      - name: Docker logs edfiadminapp-api
+        run: docker logs edfiadminapp-api
+
+      - name: Docker logs edfiadminapp-fe
+        run: docker logs edfiadminapp-fe
+
+      - name: Docker logs edfiadminapp-keycloak
+        run: docker logs edfiadminapp-keycloak
+
       - name: Upload E2E JUnit results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
