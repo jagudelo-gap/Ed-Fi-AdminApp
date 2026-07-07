@@ -46,6 +46,27 @@ export class RegisterOidcIdpsService {
             throw lastError || new Error('Could not discover OIDC provider with any URL');
           }
 
+          // Rewrite all non-issuer endpoint URLs to use the internal container base URL.
+          // Discovery may succeed via internal URL but the returned metadata still contains
+          // external URLs (e.g. https://localhost/auth/...) for token_endpoint, userinfo_endpoint, etc.
+          // The API container cannot reach https://localhost (it resolves to itself, not nginx),
+          // so we replace the external base with the internal one for all backchannel calls.
+          const internalBase = this.getInternalBaseUrl(oidcConfig.issuer);
+          if (internalBase) {
+            const externalBase = oidcConfig.issuer;
+            const rewrittenMetadata: Record<string, unknown> = {};
+            for (const [key, value] of Object.entries(TrustIssuer.metadata)) {
+              // Keep 'issuer' as external URL so token 'iss' claim validation passes
+              if (key !== 'issuer' && typeof value === 'string' && value.startsWith(externalBase)) {
+                rewrittenMetadata[key] = value.replace(externalBase, internalBase);
+              } else {
+                rewrittenMetadata[key] = value;
+              }
+            }
+            TrustIssuer = new Issuer(rewrittenMetadata as any);
+            Logger.log(`Rewrote OIDC endpoints to use internal base URL: ${internalBase}`);
+          }
+
           client = new TrustIssuer.Client({
             client_id: oidcConfig.clientId,
             client_secret: oidcConfig.clientSecret,
@@ -145,21 +166,33 @@ export class RegisterOidcIdpsService {
   private getDiscoveryUrls(issuer: string): string[] {
     const urls: string[] = [];
 
-    // If issuer contains localhost or 127.0.0.1 with /auth path, also try internal container URL
+    // If issuer contains /auth/realms/, also try internal container URL
     if (issuer.includes('/auth/realms/')) {
-      // Extract realm name from issuer
       const realmMatch = issuer.match(/\/auth\/realms\/([^\/]+)/);
       if (realmMatch) {
         const realmName = realmMatch[1];
-        // Try internal Docker container URL first (more likely to work from within container)
+        // Try internal Docker container URL first (more reliable within Docker network)
         urls.push(`http://edfiadminapp-keycloak:8080/auth/realms/${realmName}/.well-known/openid-configuration`);
       }
     }
 
-    // Always try the provided issuer URL
+    // Always include the provided issuer URL as fallback
     urls.push(`${issuer}/.well-known/openid-configuration`);
 
     return urls;
+  }
+
+  /**
+   * Derive the internal Docker container base URL from the external issuer URL.
+   * Returns null if we cannot determine an internal URL (e.g. non-Keycloak issuers).
+   */
+  private getInternalBaseUrl(issuer: string): string | null {
+    const realmMatch = issuer.match(/\/auth\/realms\/([^\/]+)/);
+    if (realmMatch) {
+      const realmName = realmMatch[1];
+      return `http://edfiadminapp-keycloak:8080/auth/realms/${realmName}`;
+    }
+    return null;
   }
 }
 
