@@ -67,6 +67,21 @@ jobs:
         with:
           sarif_file: scorecard.sarif
 
+  # Kept as a separate job (not a step in `analysis`): Scorecard's publish-results
+  # verification requires the job that calls ossf/scorecard-action to contain only
+  # `uses:` steps, so a `run:` step there breaks it ("workflow verification failed:
+  # scorecard job must only have steps with uses").
+  check-ignored-vuln-fixes:
+    name: Check whether ignored vulnerabilities now have upstream fixes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
       # Informational only: reports whether any GHSA ID ignored in osv-scanner.toml
       # now has an upstream fix, so it can be pruned. Does not fail the workflow.
       - name: Check whether ignored vulnerabilities now have upstream fixes
