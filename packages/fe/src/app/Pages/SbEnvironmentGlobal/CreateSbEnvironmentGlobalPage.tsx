@@ -14,7 +14,7 @@ import {
 import { Icons, PageTemplate } from '@edanalytics/common-ui';
 import { PostSbEnvironmentDto, PostSbEnvironmentTenantDTO } from '@edanalytics/models';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { sbEnvironmentQueries } from '../../api';
 import { popSyncBanner, useNavToParent } from '../../helpers';
@@ -42,7 +42,6 @@ export const CreateSbEnvironmentGlobalPage = () => {
       metaArn: undefined,
       version: undefined,
       startingBlocks: false,
-      isMultitenant: true,
       tenants: []
     }),
   });
@@ -50,7 +49,6 @@ export const CreateSbEnvironmentGlobalPage = () => {
   // Watch form values
   const isStartingBlocks = watch('startingBlocks');
   const currentVersion = watch('version');
-  const isMultitenant = watch('isMultitenant');
   const tenants = watch('tenants') || [];
 
   const handleSwitchChange = (checked: boolean) => {
@@ -65,37 +63,59 @@ export const CreateSbEnvironmentGlobalPage = () => {
       setValue('adminApiUrl', undefined);
       setValue('environmentLabel', undefined);
       setValue('edOrgIds', '');
-      setValue('isMultitenant', true);
       setValue('tenants', []);
     } else {
       setValue('metaArn', undefined);
       setValue('version', undefined);
-      setValue('isMultitenant', true);
       setValue('tenants', []);
     }
   };
 
   const validateVersionAndTenantMode = (odsApiDiscoveryUrl: string) => {
     const errorMessage = 'Could not fetch version from API Discovery URL. Please check the URL and try again.';
-    if (!isStartingBlocks && odsApiDiscoveryUrl && odsApiDiscoveryUrl.trim() !== '') {
+    const adminApiUrl = getValues('adminApiUrl');
+    if (
+      !isStartingBlocks &&
+      odsApiDiscoveryUrl &&
+      odsApiDiscoveryUrl.trim() !== '' &&
+      adminApiUrl &&
+      adminApiUrl.trim() !== ''
+    ) {
       // To perform the version check
       checkEdFiVersionAndTenantMode.mutateAsync(
-        { entity: { odsApiDiscoveryUrl: odsApiDiscoveryUrl }, pathParams: null },
+        { entity: { odsApiDiscoveryUrl: odsApiDiscoveryUrl, adminApiUrl }, pathParams: null },
         {
           onSuccess: (result) => {
             if (result) {
               // Handle the new response structure with version and isMultiTenant
-              const response = result as { version: string; isMultiTenant: boolean };
+              const response = result as { version: string; isMultiTenant: boolean; odsVersion?: string };
               const version = response.version;
               const isMultiTenant = response.isMultiTenant;
 
-              if (version === 'v1' || version === 'v2') {
-                setValue('version', version as 'v1' | 'v2');
+              if (version === 'v1' || version === 'v2' || version === 'v3') {
+                setValue('version', version as 'v1' | 'v2' | 'v3');
                 setValue('isMultitenant', isMultiTenant);
                 clearErrors(['odsApiDiscoveryUrl']);
               } else {
                 setValue('version', undefined);
                 setError('odsApiDiscoveryUrl', { message: errorMessage });
+              }
+
+              /// Get major version from odsVersion if available and warn if it's less than 6, which is the minimum for Admin API support
+              const odsDetectedVersion = response.odsVersion || '';
+              const majorOdsDetectedVersion = parseInt(odsDetectedVersion.split('.')[0], 10);
+
+              const incompatibleWithOds =
+                (majorOdsDetectedVersion >= 7 && version === 'v1') ||
+                (majorOdsDetectedVersion < 7 && (version === 'v2' || version === 'v3'));
+
+              if (incompatibleWithOds) {
+                setValue('version', undefined);
+                setValue('isMultitenant', false);
+                setError('odsApiDiscoveryUrl', {
+                  message: `Detected ODS version ${odsDetectedVersion} is not compatible with Admin API version ${version}.`,
+                });
+                return;
               }
             }
           },
@@ -132,11 +152,6 @@ export const CreateSbEnvironmentGlobalPage = () => {
     return Boolean(tenants?.length && tenants[0]?.odss?.length);
   };
 
-  // Helper function to validate basic tenant structure exists
-  const validateTenantsExist = (tenants: PostSbEnvironmentTenantDTO[] | undefined): boolean => {
-    return Boolean(tenants?.length);
-  };
-
   // Manual validation function
   const validateForm = (data: PostSbEnvironmentDto): boolean => {
     let isValid = true;
@@ -162,7 +177,8 @@ export const CreateSbEnvironmentGlobalPage = () => {
         isValid = false;
       }
       else {
-        if (!currentVersion) {
+        const adminApiUrl = data.adminApiUrl?.trim();
+        if (!currentVersion && adminApiUrl) {
             validateVersionAndTenantMode(data.odsApiDiscoveryUrl);
         }
       }
@@ -181,24 +197,10 @@ export const CreateSbEnvironmentGlobalPage = () => {
           setError('tenants.0.odss', { message: 'At least one ODS instance is required for v1 deployment' });
           isValid = false;
         }
-      } else if (currentVersion === 'v2') {
-        // Validate v2 specific fields
-        if (data.isMultitenant && !validateTenantsExist(tenants)) {
-          setError('tenants', { message: 'At least one tenant is required for multi-tenant deployment' });
-          isValid = false;
-        }
-
-        // For single-tenant v2, ensure we have at least one ODS instance in the default tenant
-        if (!data.isMultitenant) {
-          if (!validateFirstTenantHasOds(tenants)) {
-            setError('tenants.0.odss', { message: 'At least one ODS instance is required for single-tenant deployment' });
-            isValid = false;
-          }
-        }
       }
 
-      // Validate tenant data for both v1 and v2
-      if (currentVersion === 'v1' || currentVersion === 'v2') {
+      // Validate tenant data for v1
+      if (currentVersion === 'v1') {
         tenants.forEach((tenant, tenantIndex) => {
           if (!tenant.name || tenant.name.trim() === '') {
             setError(`tenants.${tenantIndex}.name`, { message: 'Tenant name is required' });
@@ -254,11 +256,12 @@ export const CreateSbEnvironmentGlobalPage = () => {
         {
           onSuccess: (result) => {
             navigate(`/sb-environments/${result.id}`);
-            result.syncQueue &&
+            if (result.syncQueue) {
               popSyncBanner({
                 popBanner,
                 syncQueue: result.syncQueue,
               });
+            }
           },
           ...mutationErrCallback({ setFormError: setError, popGlobalBanner: popBanner }),
         }
@@ -356,6 +359,11 @@ export const CreateSbEnvironmentGlobalPage = () => {
                     // Validate API URL if not Starting Blocks and value is present
                     if (!isStartingBlocks && value.trim() !== '') {
                       validateAdminApiUrl(value);
+
+                      const odsApiDiscoveryUrl = getValues('odsApiDiscoveryUrl');
+                      if (odsApiDiscoveryUrl?.trim()) {
+                        validateVersionAndTenantMode(odsApiDiscoveryUrl);
+                      }
                     }
                   }}
                 />
@@ -374,15 +382,16 @@ export const CreateSbEnvironmentGlobalPage = () => {
                 <FormErrorMessage>{errors.environmentLabel?.message}</FormErrorMessage>
               </FormControl>
               {
-                (currentVersion === 'v1' || currentVersion === 'v2') ? (
+                currentVersion === 'v1' ? (
                   <TenantManagementSection
-                    isMultitenant={currentVersion === 'v2' ? (isMultitenant || false) : false}
+                    isMultitenant={false}
                     tenants={tenants}
                     register={register}
                     setValue={setValue}
                     getValues={getValues}
                     errors={errors}
                     clearErrors={clearErrors}
+                    setError={setError}
                   />
                 ) : null
               }

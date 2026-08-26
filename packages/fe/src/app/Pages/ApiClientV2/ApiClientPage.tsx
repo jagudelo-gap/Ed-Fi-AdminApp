@@ -7,7 +7,7 @@ import {
 import omit from 'lodash/omit';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { useSingleApiClientActions } from './useApiClientActions';
@@ -91,5 +91,5 @@ export const ApiClientPageActions = () => {
       apiClient,
       applicationId: Number(params.applicationId),
     });
-    return <PageActions actions={omit(actions, 'View')} />;
+    return <PageActions actions={omit(actions, 'View', 'Create')} />;
 };

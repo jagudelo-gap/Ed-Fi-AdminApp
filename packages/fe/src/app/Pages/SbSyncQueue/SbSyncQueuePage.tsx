@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { sbSyncQueueQueries } from '../../api';
 import { ViewSbSyncQueue } from './ViewSbSyncQueue';
 import { useSbSyncQueueActions } from './useSbSyncQueueActions';

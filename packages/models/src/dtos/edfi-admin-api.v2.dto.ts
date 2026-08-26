@@ -10,6 +10,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { sanitizeForUrl, trimTrailingSlashes } from '@edanalytics/utils';
 import { TrimWhitespace } from '../utils';
 import { makeSerializer } from '../utils/make-serializer';
 import {
@@ -104,6 +105,20 @@ export class GetApiClientDtoV2 {
   get displayName() {
     return this.name;
   }
+
+  static apiUrl(startingBlocks: boolean, domain: string, apiClientName: string, tenantName: string) {
+    const url = new URL(domain);
+    url.protocol = 'https:';
+    if (startingBlocks)
+    {
+      const appName = sanitizeForUrl(apiClientName).slice(0, 40);
+      const pathname = trimTrailingSlashes(url.pathname);
+
+      url.pathname = `${pathname}/${tenantName}`;
+      url.hostname = `${appName}.${url.hostname}`;
+    }
+    return url.toString();
+  }
 }
 
 export class PostApiClientDtoV2 {
@@ -114,14 +129,17 @@ export class PostApiClientDtoV2 {
   name: string;
 
   @Expose()
-  @IsString()
-  @MinLength(3)
-  @MaxLength(50)
-  key: string;
-
-  @Expose()
   @IsBoolean()
   isApproved: boolean;
+
+  @Expose()
+  @IsNumber()
+  applicationId: number;
+
+  @Expose()
+  @IsNumber(undefined, { each: true })
+  @ArrayNotEmpty()
+  odsInstanceIds: number[];
 }
 
 export class PutApiClientDtoV2 {
@@ -162,14 +180,12 @@ export class PostApiClientFormDtoV2 {
   name: string;
 
   @Expose()
-  @IsString()
-  @MinLength(3)
-  @MaxLength(50)
-  key: string;
-
-  @Expose()
   @IsBoolean()
   isApproved: boolean;
+
+  @Expose()
+  @IsNumber()
+  applicationId: number;
   
   @Expose()
   @IsNumber()
@@ -202,6 +218,8 @@ export class PutApiClientFormDtoV2 {
 
 export const toGetApiClientDtoV2 = makeSerializer(GetApiClientDtoV2);
 
+export const toPostApiClientResponseDtoV2 = makeSerializer(PostApiClientResponseDtoV2);
+
 export class GetApplicationDtoV2 {
   @Expose()
   id: number;
@@ -227,14 +245,10 @@ export class GetApplicationDtoV2 {
     url.protocol = 'https:';
     if (startingBlocks)
     {
-      const safe = (str: string) =>
-        str
-          .toLowerCase()
-          .replace(/\s/g, '-')
-          .replace(/[^a-z0-9-]/g, '');
+      const appName = sanitizeForUrl(applicationName).slice(0, 40);
+      const pathname = trimTrailingSlashes(url.pathname);
 
-      const appName = safe(applicationName).slice(0, 40);
-      url.pathname = url.pathname.replace(/\/+$/, '') + '/' + tenantName;
+      url.pathname = `${pathname}/${tenantName}`;
       url.hostname = `${appName}.${url.hostname}`;
     }
     return url.toString();
@@ -342,6 +356,9 @@ export const toGetClaimsetSingleDtoV2 = makeSerializer(GetClaimsetSingleDtoV2);
 export class ImportClaimsetSingleDtoV2 {
   @Expose()
   @TrimWhitespace()
+  // Admin API rejects names of 255+ characters in BOTH versions. Note V2 has no
+  // whitespace restriction — that rule is V3-only, see ImportClaimsetSingleDtoV3.
+  @MaxLength(254)
   name: string;
 
   @Expose()
@@ -451,6 +468,7 @@ export class CopyClaimsetDtoV2 {
   @Expose()
   @IsString()
   @TrimWhitespace()
+  @MaxLength(254)
   name: string;
 }
 
@@ -469,6 +487,18 @@ export class GetOdsInstanceSummaryDtoV2 {
 }
 
 export const toGetOdsInstanceSummaryDtoV2 = makeSerializer(GetOdsInstanceSummaryDtoV2);
+
+export class PostInstanceDtoV2 {
+  @Expose()
+  @IsString()
+  @TrimWhitespace()
+  name: string;
+
+  @Expose()
+  @IsString()
+  @TrimWhitespace()
+  databaseTemplate: string;
+}
 
 export class PostCreateOdsInstanceDtoV2 {
   @Expose()

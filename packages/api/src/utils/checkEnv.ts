@@ -1,4 +1,5 @@
 import * as config from 'config';
+import { asBool } from './config-bool';
 
 const errs = [];
 
@@ -27,7 +28,7 @@ if (config.MY_URL === undefined) {
 if (config.USE_YOPASS === undefined) {
   errs.push('USE_YOPASS not defined.');
 }
-else if (config.USE_YOPASS) {
+else if (asBool(config.USE_YOPASS)) {
   if (config.YOPASS_URL === undefined) {
     errs.push('YOPASS_URL not defined.');
   }

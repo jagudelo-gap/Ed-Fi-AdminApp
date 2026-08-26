@@ -5,7 +5,7 @@ import {
   toOperationResultDto,
 } from '@edanalytics/models';
 import { EdfiTenant, SbEnvironment, regarding } from '@edanalytics/models-server';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CustomHttpException, ValidationHttpException } from '../../utils';

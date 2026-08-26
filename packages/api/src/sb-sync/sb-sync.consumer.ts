@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import config from 'config';
-import PgBoss from 'pg-boss';
 import { Repository } from 'typeorm';
 import {
   StartingBlocksServiceV1,
@@ -18,12 +17,14 @@ import {
 } from '../teams/edfi-tenants/starting-blocks';
 import { MetadataService } from '../teams/edfi-tenants/starting-blocks/metadata.service';
 import { CustomHttpException } from '../utils/customExceptions';
+import { jsonValue } from '../utils/db-json-query';
 import {
   ENV_SYNC_CHNL,
-  PgBossInstance,
   SYNC_SCHEDULER_CHNL,
   TENANT_SYNC_CHNL,
 } from './sb-sync.module';
+import { AdminApiSyncService } from './edfi/adminapi-sync.service';
+import { IJobQueueService, Job } from './job-queue/job-queue.interface';
 
 @Injectable()
 export class SbSyncConsumer implements OnModuleInit {
@@ -32,28 +33,23 @@ export class SbSyncConsumer implements OnModuleInit {
     private sbEnvironmentsRepository: Repository<SbEnvironment>,
     @InjectRepository(EdfiTenant)
     private edfiTenantsRepository: Repository<EdfiTenant>,
-    @Inject('PgBossInstance')
-    private readonly boss: PgBossInstance,
+    @Inject('IJobQueueService')
+    private readonly jobQueue: IJobQueueService,
     private readonly sbServiceV1: StartingBlocksServiceV1,
     private readonly sbServiceV2: StartingBlocksServiceV2,
-    private readonly metadataService: MetadataService
+    private readonly metadataService: MetadataService,
+    private readonly adminapiSyncService: AdminApiSyncService
   ) {}
   public async onModuleDestroy() {
-    if (config.DB_ENGINE === 'mssql') {
-      // mssql is not yet supported
-      return null;
-    }
-    await this.boss.stop();
+    await this.jobQueue.stop();
   }
   public async onModuleInit() {
-    if (config.DB_ENGINE === 'mssql') {
-      // mssql is not yet supported
-      return null;
-    }
-    this.boss.on('error', (error) => Logger.error(error));
-
     try {
-      await this.boss.schedule(SYNC_SCHEDULER_CHNL, config.SB_SYNC_CRON, null, {
+      // pg-boss v12: queues must exist in pgboss.queue before schedule() or work() can reference them.
+      await this.jobQueue.createQueue(SYNC_SCHEDULER_CHNL);
+      await this.jobQueue.createQueue(ENV_SYNC_CHNL);
+      await this.jobQueue.createQueue(TENANT_SYNC_CHNL);
+      await this.jobQueue.schedule(SYNC_SCHEDULER_CHNL, config.SB_SYNC_CRON, null, {
         tz: 'America/Chicago',
       });
       Logger.log('Sync scheduler job scheduled successfully');
@@ -69,30 +65,48 @@ export class SbSyncConsumer implements OnModuleInit {
     }
 
     try {
-      await this.boss.work(SYNC_SCHEDULER_CHNL, async () => {
+      await this.jobQueue.work(SYNC_SCHEDULER_CHNL, async () => {
         const sbEnvironments = await this.sbEnvironmentsRepository
           .createQueryBuilder()
           .select()
-          .where(`"configPublic"->>'sbEnvironmentMetaArn' is not null`)
+          .where(`${jsonValue('configPublic', 'sbEnvironmentMetaArn', config.DB_ENGINE)} is not null`)
           .getMany();
 
         Logger.log(`Starting sync for ${sbEnvironments.length} environments.`);
         await Promise.all(
           sbEnvironments.map((sbEnvironment) =>
-            this.boss.send(
+            this.jobQueue.send(
               ENV_SYNC_CHNL,
               { sbEnvironmentId: sbEnvironment.id },
               { singletonKey: String(sbEnvironment.id), expireInHours: 1 }
             )
           )
         );
+
+        const adminApiEnvironments = await this.sbEnvironmentsRepository
+          .createQueryBuilder()
+          .select()
+          .where(`${jsonValue('configPublic', 'adminApiUrl', config.DB_ENGINE)} is not null`)
+          .andWhere(`${jsonValue('configPublic', 'sbEnvironmentMetaArn', config.DB_ENGINE)} is null`)
+          .getMany();
+
+        Logger.log(`Starting Admin API refresh for ${adminApiEnvironments.length} environments.`);
+        await Promise.all(
+          adminApiEnvironments.map((env) =>
+            this.jobQueue.send(
+              ENV_SYNC_CHNL,
+              { sbEnvironmentId: env.id },
+              { singletonKey: String(env.id), expireInHours: 1 }
+            )
+          )
+        );
       });
 
-      await this.boss.work(ENV_SYNC_CHNL, async (job: PgBoss.Job<{ sbEnvironmentId: number }>) => {
+      await this.jobQueue.work(ENV_SYNC_CHNL, async (job: Job<{ sbEnvironmentId: number }>) => {
         return this.refreshSbEnvironment(job.data.sbEnvironmentId);
       });
 
-      await this.boss.work(TENANT_SYNC_CHNL, async (job: PgBoss.Job<{ edfiTenantId: number }>) => {
+      await this.jobQueue.work(TENANT_SYNC_CHNL, async (job: Job<{ edfiTenantId: number }>) => {
         return this.refreshEdfiTenant(job.data.edfiTenantId);
       });
 
@@ -107,30 +121,43 @@ export class SbSyncConsumer implements OnModuleInit {
         throw error;
       }
     }
+
+    // Explicitly start the queue after workers are registered. This is safe to call even if
+    // onApplicationBootstrap already started it — start() is idempotent.
+    await this.jobQueue.start();
   }
 
   async refreshSbEnvironment(sbEnvironmentId: number) {
     let sbEnvironment = await this.sbEnvironmentsRepository
       .createQueryBuilder()
       .select()
-      .where(`"configPublic"->>'sbEnvironmentMetaArn' is not null and id = :id`, {
+      .where(`${jsonValue('configPublic', 'sbEnvironmentMetaArn', config.DB_ENGINE)} is not null and id = :id`, {
         id: sbEnvironmentId,
       })
       .getOne();
     if (sbEnvironment === null) {
-      //try to find a syncable environment EdFi
+      //try to find a syncable environment EdFi (with Admin API)
       sbEnvironment = await this.sbEnvironmentsRepository
         .createQueryBuilder()
         .select()
-        .where(`"configPublic"->>'type' is not null and id = :id`, {
+        .where(`${jsonValue('configPublic', 'adminApiUrl', config.DB_ENGINE)} is not null and id = :id`, {
           id: sbEnvironmentId,
         })
         .getOne();
       if (sbEnvironment === null)
         throw new NotFoundException(`No syncable environment found with id ${sbEnvironmentId}`);
 
-      // make some stuff to the environment like getting the tenants. Tenants are getting from a lambda function
-      // maybe we should have a list of tenants in the sbEnvironment react form?
+      const adminApiSyncResult = await this.adminapiSyncService.syncEnvironmentData(sbEnvironment);
+      if (adminApiSyncResult.status !== 'SUCCESS') {
+        throw new BadRequestException(
+          `Failed to sync environment ${sbEnvironment.name} via Admin API: ${adminApiSyncResult.message}`
+        );
+      }
+      return {
+        tenantsProcessed: adminApiSyncResult.tenantsProcessed || 0,
+        message: adminApiSyncResult.message,
+      };
+
     } else {
       // Use the lambda function to get metadata
       const sbMeta = await this.metadataService.getMetadata(sbEnvironment);
@@ -183,7 +210,22 @@ export class SbSyncConsumer implements OnModuleInit {
     });
     const sbEnvironment = edfiTenant.sbEnvironment;
     const sbMeta = await this.metadataService.getMetadata(sbEnvironment);
-    if (sbMeta.status === 'NO_CONFIG') {
+
+    if (!sbEnvironment.startingBlocks)
+    {
+      const result = await this.adminapiSyncService.syncTenantData(edfiTenant);
+      if (result.status !== 'SUCCESS') {
+        throw new BadRequestException(
+          `Failed to sync tenant ${edfiTenant.name} via Admin API: ${result.message}`
+        );
+      }
+      return {
+        message: result.message,
+      };
+    }
+    else
+    {
+      if (sbMeta.status === 'NO_CONFIG') {
       throw new CustomHttpException(
         {
           type: 'Error',
@@ -219,6 +261,7 @@ export class SbSyncConsumer implements OnModuleInit {
       throw result;
     } else {
       return result.data;
+    }
     }
   }
 }

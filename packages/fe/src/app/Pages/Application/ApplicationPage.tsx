@@ -1,7 +1,7 @@
 import { OneTimeShareCredentials, PageActions, PageContentCard, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { applicationQueriesV1, claimsetQueriesV1 } from '../../api';
 
 import { GetClaimsetDto } from '@edanalytics/models';

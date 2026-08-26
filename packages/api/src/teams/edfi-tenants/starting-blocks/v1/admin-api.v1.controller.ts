@@ -51,6 +51,7 @@ import { checkId } from '../../../../auth/helpers/where-ids';
 import {
   CustomHttpException,
   ValidationHttpException,
+  asBool,
   isIAdminApiValidationError,
   postYopassSecret,
 } from '../../../../utils';
@@ -336,7 +337,7 @@ export class AdminApiControllerV1 {
     let existingApplication: GetApplicationDto;
     try {
       existingApplication = await this.sbService.getApplication(edfiTenant, applicationId);
-    } catch (applicationNotFound) {
+    } catch (_applicationNotFound) {
       throw new NotFoundException();
     }
 
@@ -427,7 +428,7 @@ export class AdminApiControllerV1 {
       if (returnRaw) {
         return toPostApplicationResponseDto(adminApiResponse);
       } else {
-        if (config.USE_YOPASS) {
+        if (asBool(config.USE_YOPASS)) {
           try {
             const yopassResult = await postYopassSecret({
               ...adminApiResponse,
@@ -516,10 +517,11 @@ export class AdminApiControllerV1 {
           edfiTenant,
           applicationId
         );
-        if (config.USE_YOPASS) {
+        if (asBool(config.USE_YOPASS)) {
           try {
             const yopassResult = await postYopassSecret({
               ...adminApiResponse,
+              secretSharingMethod: SecretSharingMethod.Yopass,
               url: GetApplicationDto.apiUrl(sbEnvironment.startingBlocks, sbEnvironment.domain, application.applicationName),
             });
 
@@ -580,12 +582,23 @@ export class AdminApiControllerV1 {
     @Param('teamId', new ParseIntPipe()) teamId: number,
     @ReqEdfiTenant() edfiTenant: EdfiTenant,
     @Query('id') _ids: string[] | string,
+    @InjectFilter('team.sb-environment.edfi-tenant.claimset:read') validIds: Ids,
     @Res() res: Response
   ) {
-    // TODO: transformation probably shouldn't happen here, but but TBD. Possibly.
+    if (_ids === undefined) throw new BadRequestException('At least one claimset ID must be provided');
     const ids = Array.isArray(_ids) ? _ids : [_ids];
+    const parsedIds = ids.map((id) => {
+      const trimmed = id.trim();
+      const n = parseInt(trimmed, 10);
+      if (isNaN(n) || n <= 0 || n.toString() !== trimmed)
+        throw new BadRequestException(`Invalid claimset ID: ${id}`);
+      return n;
+    });
+    for (const id of parsedIds) {
+      if (!checkId(id, validIds)) throw new ForbiddenException(`Access denied to claimset ID: ${id}`);
+    }
     const claimsets = await Promise.all(
-      ids.map((id) => this.sbService.getClaimsetRaw(edfiTenant, Number(id)))
+      parsedIds.map((id) => this.sbService.getClaimsetRaw(edfiTenant, id))
     );
     const title =
       claimsets.length === 1 ? claimsets[0].name : `${edfiTenant.sbEnvironment.envLabel} claimsets`;

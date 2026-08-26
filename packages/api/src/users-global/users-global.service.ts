@@ -39,7 +39,7 @@ export class UsersGlobalService {
     return this.usersRepository.save(updated);
   }
 
-  async remove(id: number, user: GetUserDto) {
+  async remove(id: number, _user: GetUserDto) {
     const old = await this.findOne(id).catch(throwNotFound);
     await this.usersRepository.remove(old);
     return undefined;

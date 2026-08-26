@@ -1,4 +1,4 @@
-import { generatePath, useMatches, useParams } from 'react-router-dom';
+import { generatePath, useMatches, useParams } from 'react-router';
 import { flatRoutes } from '../routes';
 import uniq from 'lodash/uniq';
 

@@ -7,7 +7,7 @@ import {
   ValueAsDate,
 } from '@edanalytics/common-ui';
 import { GetTeamDto } from '@edanalytics/models';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import {
   ownershipQueries,
   roleQueries,

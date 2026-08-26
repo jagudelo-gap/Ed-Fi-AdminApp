@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { PageTemplate } from '@edanalytics/common-ui';
 import { GetSessionDataDtoUtm } from '@edanalytics/models';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import { LandingContent } from '../../Layout/Landing';
 import { useAsId } from '../../Layout/Nav';
 import { useMe } from '../../api';

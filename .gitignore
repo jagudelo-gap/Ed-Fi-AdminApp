@@ -61,3 +61,18 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+
+# certification - ignore the runtime folder where the downloaded artifact is extracted
+packages/api/certification/bruno/*
+
+test-results/
+tests/api/test-results/
+
+#e2e reports
+test-results
+playwright
+tests/e2e/.features-gen
+
+# ai auxiliary files, plans, specs, etc. that are not part of the source code
+docs/superpowers
+.worktrees/

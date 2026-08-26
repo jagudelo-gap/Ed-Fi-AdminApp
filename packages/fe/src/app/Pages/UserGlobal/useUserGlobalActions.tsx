@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetUserDto } from '@edanalytics/models';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { queryKey, userQueries } from '../../api';
 import { globalUserAuthConfig, globalUtmAuthConfig, useAuthorize } from '../../helpers';

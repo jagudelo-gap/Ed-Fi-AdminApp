@@ -16,7 +16,7 @@ import { Icons } from '../Icons';
 type TableComponent = ChakraComponent<'table', { isFixedHeightForPagination?: boolean }>;
 
 export const SbaaTable: TableComponent = (props) => {
-  const { children, isFixedHeightForPagination = false, ...rest } = props;
+  const { children: _children, isFixedHeightForPagination = false, ...rest } = props;
   const { table, isRowSelectionEnabled } = useSbaaTableContext();
   if (!table) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,7 +32,7 @@ export const SbaaTable: TableComponent = (props) => {
   const emptyRowCount = pageIndex === 0 ? 0 : pageSize - rows.length;
   const emptyRows = [...Array(emptyRowCount).keys()].map((i) => ({
     id: `empty-${i}`,
-  })) as Row<any>[];
+  })) as Row<unknown>[];
   const columnCount = table.getAllColumns().length;
 
   return (

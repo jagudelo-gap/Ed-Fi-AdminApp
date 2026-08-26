@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_APPLICATION_NAME: string;
   /** URL for the IdP account management page */
   readonly VITE_IDP_ACCOUNT_URL: string;
+  readonly VITE_SHOW_REQUEST_CERTIFICATION?: string;
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv;

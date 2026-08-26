@@ -33,7 +33,7 @@ export function IsNumberOrCommaSeparatedNumbers(versions: string[], validationOp
           }
           
           // Check if it's a single number or comma-separated numbers
-          const numberPattern = /^\s*\d+\s*(\s*,\s*\d+\s*)*$/;
+          const numberPattern = /^\s*\d+(?:\s*,\s*\d+)*\s*$/;
           return numberPattern.test(value);
         },
         defaultMessage() {

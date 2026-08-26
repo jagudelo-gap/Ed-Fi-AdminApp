@@ -7,7 +7,7 @@ import {
 import { GetEdfiTenantDto } from '@edanalytics/models';
 import { AuthorizeComponent, useTeamSbEnvironmentNavContext } from '../../helpers';
 import { Link } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import { SbEnvironmentLink } from '../../routes';
 import { queryFromEntity } from '../../api/queries/builder';
 
@@ -99,7 +99,7 @@ export const ViewEdfiTenant = ({ edfiTenant }: { edfiTenant: GetEdfiTenantDto })
               Claimsets &rarr;
             </Link>
           </AuthorizeComponent>
-          {sbEnvironment?.version === 'v2' && (
+          {sbEnvironment?.version !== 'v1' && (
             <AuthorizeComponent
               config={{
                 privilege: 'team.sb-environment.edfi-tenant.profile:read',

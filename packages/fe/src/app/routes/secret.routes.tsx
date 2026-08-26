@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { RouteObject } from 'react-router-dom';
+import { RouteObject } from 'react-router';
 const SecretPage = lazy(() => import('../Pages/Secret/SecretPage'));
 
 export const secretRoute: RouteObject = {

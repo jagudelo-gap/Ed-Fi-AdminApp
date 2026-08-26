@@ -1,5 +1,5 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { globalTeamAuthConfig, useAuthorize } from '../../helpers';
 
 // TODO rename the multi-item versions to something other than just the extra "s", which isn't visible enough.

@@ -12,11 +12,13 @@ services:
     volumes:
       - vol-edfiadminapp-keycloak:/opt/keycloak/data
       - ./adminapp/healthcheck.sh:/opt/keycloak/healthcheck.sh
-       # Bind-mount realm template for sed-based rendering at startup
-      - ./adminapp/realm-config.json:/tmp/realm-config.tmpl:ro
+      # Bind-mount realm template for sed-based rendering at startup
+      - ${KEYCLOAK_REALM_CONFIG_TEMPLATE:-./adminapp/realm-config.json}:/tmp/realm-config.tmpl:ro
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-localhost}
+      KC_HOSTNAME_PROTOCOL: ${KEYCLOAK_HOSTNAME_PROTOCOL:-https}
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: false
       KC_HOSTNAME_STRICT: false
       KC_HTTP_RELATIVE_PATH: /auth
@@ -28,6 +30,7 @@ services:
       # Variables used to render /tmp/realm-config.tmpl via sed
       BASE_URL: ${BASE_URL:-https://localhost}
       BASE_URL_DEV: ${BASE_URL_DEV:-http://localhost:3333}
+      KEYCLOAK_REALM_CONFIG_TEMPLATE: ${KEYCLOAK_REALM_CONFIG_TEMPLATE:-./adminapp/realm-config.json}
       KEYCLOAK_EDFIADMINAPP_CLIENT_SECRET: ${KEYCLOAK_EDFIADMINAPP_CLIENT_SECRET:-adminapp-secret}
       KEYCLOAK_EDFIADMINAPP_DEV_CLIENT_SECRET: ${KEYCLOAK_EDFIADMINAPP_DEV_CLIENT_SECRET:-adminapp-dev-secret}
     entrypoint:
@@ -36,14 +39,14 @@ services:
       - |
         cp /opt/keycloak/healthcheck.sh /tmp/healthcheck.sh && \
         chmod +x /tmp/healthcheck.sh && \
-        mkdir -p /opt/keycloak/data/import && \
         sed \
           -e "s|{{BASE_URL}}|${BASE_URL}|g" \
           -e "s|{{BASE_URL_DEV}}|${BASE_URL_DEV}|g" \
           -e "s|{{KEYCLOAK_EDFIADMINAPP_CLIENT_SECRET}}|${KEYCLOAK_EDFIADMINAPP_CLIENT_SECRET}|g" \
           -e "s|{{KEYCLOAK_EDFIADMINAPP_DEV_CLIENT_SECRET}}|${KEYCLOAK_EDFIADMINAPP_DEV_CLIENT_SECRET}|g" \
-          /tmp/realm-config.tmpl > /opt/keycloak/data/import/realm-config.json && \
-        /opt/keycloak/bin/kc.sh start-dev --import-realm
+          /tmp/realm-config.tmpl > /tmp/realm-config.json && \
+        /opt/keycloak/bin/kc.sh import --file /tmp/realm-config.json --override true && \
+        /opt/keycloak/bin/kc.sh start-dev
     networks:
       - edfiadminapp-network
     healthcheck:
@@ -107,13 +110,23 @@ services:
       start_period: 40s
 
   memcached:
-    image: memcached
+    image: memcached:1.6@sha256:d99136ed4c1cf2e3fceb498763f2b7fedec7c486a0fe8a57be19f2a0519ce1fa
     restart: always
     networks:
       - edfiadminapp-network
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'timeout 2 bash -ec "exec 3<>/dev/tcp/127.0.0.1/11211; echo version >&3; head -n 1 <&3 | grep -q ^VERSION"',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   yopass:
-    image: jhaals/yopass
+    image: jhaals/yopass:12.5.0@sha256:916a1cf45d3665dd7e6a1a2157c7b81a06bfebd87947ace731bca0145418c5b5
     restart: always
     container_name: edfiadminapp-yopass
     ports:
@@ -121,6 +134,9 @@ services:
     command: '--memcached=memcached:11211 --port 80'
     networks:
       - edfiadminapp-network
+    depends_on:
+      memcached:
+        condition: service_healthy
 
   edfiadminapp-api:
     build:
@@ -132,22 +148,35 @@ services:
     volumes:
       - api-logs:/app/logs
       - ./ssl/server.crt:/app/ssl/server.crt:ro
+      - ./settings/e2e/oidc-http-patch.cjs:/app/e2e-hooks/oidc-http-patch.cjs:ro
     environment:
       - NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS:-/app/ssl/server.crt}
+      - NODE_OPTIONS=${API_NODE_OPTIONS:-}
       - DB_SSL=${DB_SSL:-true}
       - DB_ENGINE=${DB_ENGINE:-pgsql}
+      - DB_SECRET_VALUE=${DB_SECRET_VALUE}
       - DB_TRUST_CERTIFICATE=${DB_TRUST_CERTIFICATE:-false}
       - DB_TTL_IN_MINUTES=${DB_TTL_IN_MINUTES:-120}
       - USE_YOPASS=${USE_YOPASS:-true}
+      - SSL_VERIFICATION=${SSL_VERIFICATION:-true}
       - YOPASS_URL=${YOPASS_URL:-http://edfiadminapp-yopass:80}
+      - CERT_BRUNO_SRC_REF=${CERT_BRUNO_SRC_REF:-'v2.1.0'}
+      - CERT_BRUNO_SRC_CHECKSUM=${CERT_BRUNO_SRC_CHECKSUM:-'71840f51f464c60d7b90c7bbf08d9be039df291d51dd69085ffc4703b98f11e6'}
+      - CERT_BRUNO_ON_DOWNLOAD_ERROR=${CERT_BRUNO_ON_DOWNLOAD_ERROR:-'warning'}
     extra_hosts:
       - 'localhost:host-gateway' # Allow container to access host's localhost
     restart: unless-stopped
     depends_on:
       edfiadminapp-postgres:
         condition: service_healthy
+        required: false
+      edfiadminapp-mssql:
+        condition: service_healthy
+        required: false
       edfiadminapp-keycloak:
         condition: service_healthy
+      yopass:
+        condition: service_started
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3333/api/healthcheck || exit 1']
       interval: 30s

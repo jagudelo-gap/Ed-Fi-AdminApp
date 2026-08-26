@@ -1,0 +1,29 @@
+meta {
+  name: environments/refresh-resources v3 single-tenant - OK (200)
+  type: http
+  seq: 5
+  tags: Environments
+}
+
+put {
+  url: {{BASE_URL}}/sb-environments/{{v3SingleEnvId}}/refresh-resources
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+tests {
+  test("environments/refresh-resources v3 single-tenant - status is 2xx", function() {
+    const status = res.getStatus();
+    expect(status).to.be.within(200, 299);
+  });
+
+  test("environments/refresh-resources v3 single-tenant - response is a sync queue item", function() {
+    const body = res.getBody();
+    expect(body).to.have.property("id");
+    expect(body).to.have.property("state");
+  });
+}

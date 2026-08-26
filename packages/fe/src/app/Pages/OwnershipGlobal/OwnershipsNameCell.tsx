@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { HStack } from '@chakra-ui/react';
 import { TableRowActions } from '@edanalytics/common-ui';
-import { GetOwnershipDto, GetOwnershipViewDto } from '@edanalytics/models';
+import { GetOwnershipViewDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
 import { ownershipQueries } from '../../api';
 import { OwnershipGlobalLink } from '../../routes';

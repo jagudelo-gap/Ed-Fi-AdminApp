@@ -13,7 +13,7 @@ import { GetVendorDto, PutVendorDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { vendorQueriesV1 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';

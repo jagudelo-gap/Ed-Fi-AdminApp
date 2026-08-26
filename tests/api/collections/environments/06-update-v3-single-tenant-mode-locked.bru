@@ -1,0 +1,35 @@
+meta {
+  name: environments/update v3 single-tenant - tenant mode change rejected (400)
+  type: http
+  seq: 6
+  tags: Environments
+}
+
+put {
+  url: {{BASE_URL}}/sb-environments/{{v3SingleEnvId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "name": "V3 Single Tenant Validation",
+    "isMultitenant": true
+  }
+}
+
+tests {
+  test("environments/update v3 single-tenant - tenant mode change is rejected (400)", function() {
+    const status = res.getStatus();
+    expect(status).to.equal(400);
+  });
+  
+  test("environments/update v3 single-tenant - rejection mentions isMultitenant", function() {
+    const body = res.getBody();
+    expect(JSON.stringify(body)).to.include("isMultitenant");
+  });
+}

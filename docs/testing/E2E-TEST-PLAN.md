@@ -427,7 +427,7 @@ jobs:
         with:
           name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
-          retention-days: 7
+          retention-days: 30
 
       - name: Stop test environment
         if: always()

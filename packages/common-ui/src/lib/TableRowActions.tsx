@@ -12,7 +12,7 @@ import { Icons } from './Icons';
  *   - If they're among the hidden bunch, then they're moved to the end of the visible bunch, resulting in more than the target being temporarily shown.
  */
 export const splitActions = (actions: ActionsType, show?: number | undefined | true) => {
-  const hidden = Object.entries(actions).sort(([ak, a], [bk, b]) =>
+  const hidden = Object.entries(actions).sort(([_ak, a], [_bk, b]) =>
     a.isIrrelevant ? 1 : b.isIrrelevant ? -1 : 0
   );
   const visible = hidden.splice(

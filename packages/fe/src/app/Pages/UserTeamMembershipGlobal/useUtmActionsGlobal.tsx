@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetUserTeamMembershipDto } from '@edanalytics/models';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { userTeamMembershipQueries } from '../../api';
 import { globalUtmAuthConfig, useAuthorize } from '../../helpers';

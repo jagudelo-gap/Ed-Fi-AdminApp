@@ -1,5 +1,5 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { globalSbEnvironmentAuthConfig, useAuthorize } from '../../helpers';
 
 export const useSbEnvironmentsGlobalActions = (): ActionsType => {

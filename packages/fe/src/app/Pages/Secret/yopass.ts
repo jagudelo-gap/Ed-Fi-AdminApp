@@ -1,4 +1,4 @@
-import { decrypt, readMessage, DecryptMessageResult } from 'openpgp/lightweight';
+import { decrypt, readMessage, DecryptMessageResult } from 'openpgp';
 import urlJoin from 'url-join';
 import { API_URL } from '../../api/methods';
 

@@ -1,7 +1,7 @@
 import { PageActions, PageContentCard, PageTemplate } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
 import omit from 'lodash/omit';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { edfiTenantQueriesGlobal } from '../../api';
 import { VersioningHoc, useSbEnvironmentNavContext } from '../../helpers';
 import { ViewEdfiTenantGlobal } from './ViewEdfiTenantGlobal';

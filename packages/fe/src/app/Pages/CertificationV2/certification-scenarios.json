@@ -1,0 +1,2828 @@
+[
+  {
+    "id": 1,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "DescriptorMapping",
+    "scenariosName": "DescriptorMappings",
+    "scenarioStep": "01 - Check first DescriptorMapping is valid",
+    "parameters": [
+      {
+        "name": "mappedNamespace",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "DescriptorMapping",
+    "scenariosName": "DescriptorMappings",
+    "scenarioStep": "02 - Check second DescriptorMapping is valid",
+    "parameters": [
+      {
+        "name": "mappedNamespace",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "ClassPeriods",
+    "scenarioStep": "01 - Check First ClassPeriod is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "classPeriodName",
+        "description": "Class Period name"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "ClassPeriods",
+    "scenarioStep": "02 - Check second ClassPeriod is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "classPeriodName",
+        "description": "Class Period name"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "ClassPeriods",
+    "scenarioStep": "03 - Check first ClassPeriod classPeriodName was Updated",
+    "parameters": [
+      {
+        "name": "firstClassPeriodUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "ClassPeriods",
+    "scenarioStep": "04 - Check second ClassPeriod meetingTimes were Updated",
+    "parameters": [
+      {
+        "name": "secondClassPeriodUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Courses",
+    "scenarioStep": "01 - Check first Course is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "courseCode",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Courses",
+    "scenarioStep": "02 - Check second Course is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "courseCode",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Courses",
+    "scenarioStep": "03 - Check first Course courseTitle was Updated",
+    "parameters": [
+      {
+        "name": "firstCourseUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Courses",
+    "scenarioStep": "04 - Check second Course levelCharacteristics was Updated",
+    "parameters": [
+      {
+        "name": "secondCourseUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Locations",
+    "scenarioStep": "01 - Check first Location is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "classroomIdentificationCode",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Locations",
+    "scenarioStep": "02 - Check second Location is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "classroomIdentificationCode",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Locations",
+    "scenarioStep": "03 - Check first Location maximumNumberOfSeats was Updated",
+    "parameters": [
+      {
+        "name": "firstLocationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Locations",
+    "scenarioStep": "04 - Check second Location maximumNumberOfSeats was Updated",
+    "parameters": [
+      {
+        "name": "secondLocationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Programs",
+    "scenarioStep": "01 - Check first Program is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Programs",
+    "scenarioStep": "02 - Check first Program was Deleted",
+    "parameters": [
+      {
+        "name": "firstProgramUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Schools",
+    "scenarioStep": "01 - Check first School is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Schools",
+    "scenarioStep": "02 - Check second School is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Schools",
+    "scenarioStep": "03 - Check first School streetNumberName was Updated",
+    "parameters": [
+      {
+        "name": "firstSchoolUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganization",
+    "scenariosName": "Schools",
+    "scenarioStep": "04 - Check second School postalCode was Updated",
+    "parameters": [
+      {
+        "name": "secondSchoolUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "CalendarDates",
+    "scenarioStep": "01 - Check first CalendarDate is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "calendarCode",
+        "description": ""
+      },
+      {
+        "name": "date",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "CalendarDates",
+    "scenarioStep": "02 - Check second CalendarDate is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "calendarCode",
+        "description": ""
+      },
+      {
+        "name": "date",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "CalendarDates",
+    "scenarioStep": "03 - Check first CalendarDate calendarEventDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstCalendarDateUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "CalendarDates",
+    "scenarioStep": "04 - Check second CalendarDate calendarEventDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "secondCalendarDateUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Calendars",
+    "scenarioStep": "01 - Check first Calendar is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "calendarCode",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Calendars",
+    "scenarioStep": "02 - Check second Calendar is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "calendarCode",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Calendars",
+    "scenarioStep": "03 - Check first Calendar calendarTypeDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstCalendarUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Calendars",
+    "scenarioStep": "04 - Check second Calendar gradeLevelDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "secondCalendarUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "GradingPeriods",
+    "scenarioStep": "01 - Check first GradingPeriod is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "periodSequence",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "GradingPeriods",
+    "scenarioStep": "02 - Check second GradingPeriod is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "periodSequence",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "GradingPeriods",
+    "scenarioStep": "03 - Check third GradingPeriod is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "periodSequence",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "GradingPeriods",
+    "scenarioStep": "04 - Check fourth GradingPeriod is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "periodSequence",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 33,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "GradingPeriods",
+    "scenarioStep": "05 - Check first GradingPeriod endDate and totalInstructionalDays was Updated",
+    "parameters": [
+      {
+        "name": "firstGradingPeriodUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "GradingPeriods",
+    "scenarioStep": "06 - Check third GradingPeriod endDate and totalInstructionalDays was Updated",
+    "parameters": [
+      {
+        "name": "thirdGradingPeriodUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Sessions",
+    "scenarioStep": "01 - Check first Session is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Sessions",
+    "scenarioStep": "02 - Check second Session is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Sessions",
+    "scenarioStep": "03 - Check first Session was Updated",
+    "parameters": [
+      {
+        "name": "firstSessionUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "EducationOrganizationCalendar",
+    "scenariosName": "Sessions",
+    "scenarioStep": "04 - Check second Session was Updated",
+    "parameters": [
+      {
+        "name": "secondSessionUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 39,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "BellSchedules",
+    "scenarioStep": "01 - Check BellSchedule is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "bellScheduleName",
+        "description": "Bell Schedule name"
+      }
+    ]
+  },
+  {
+    "id": 40,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "CourseOfferings",
+    "scenarioStep": "01 - Check first CourseOffering is valid",
+    "parameters": [
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      }
+    ]
+  },
+  {
+    "id": 41,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "CourseOfferings",
+    "scenarioStep": "02 - Check second CourseOffering is valid",
+    "parameters": [
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      }
+    ]
+  },
+  {
+    "id": 42,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "CourseOfferings",
+    "scenarioStep": "03 - Check first CourseOffering was Updated",
+    "parameters": [
+      {
+        "name": "firstCourseOfferingUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 43,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "CourseOfferings",
+    "scenarioStep": "04 - Check second CourseOffering was Updated",
+    "parameters": [
+      {
+        "name": "secondCourseOfferingUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 44,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "Sections",
+    "scenarioStep": "01 - Check first Section is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 45,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "Sections",
+    "scenarioStep": "02 - Check second Section is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 46,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "Sections",
+    "scenarioStep": "03 - Check first Section availableCredits was Updated",
+    "parameters": [
+      {
+        "name": "firstSectionUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 47,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "MasterSchedule",
+    "scenariosName": "Sections",
+    "scenarioStep": "04 - Check second Section availableCredits was Updated",
+    "parameters": [
+      {
+        "name": "secondSectionUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 48,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffEdOrgAssociations",
+    "scenarioStep": "01 - Check first StaffEdOrgAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "staffClassificationDescriptorId",
+        "description": "Staff Classification Descriptor id"
+      }
+    ]
+  },
+  {
+    "id": 49,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffEdOrgAssociations",
+    "scenarioStep": "02 - Check second StaffEdOrgAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "staffClassificationDescriptorId",
+        "description": "Staff Classification Descriptor id"
+      }
+    ]
+  },
+  {
+    "id": 50,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffEdOrgAssociations",
+    "scenarioStep": "03 - Check first StaffEdOrgAssociation positionTitle and endDate were Updated",
+    "parameters": [
+      {
+        "name": "firstStaffEducationOrganizationAssignmentAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 51,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffEdOrgAssociations",
+    "scenarioStep": "04 - Check second StaffEdOrgAssociation positionTitle was Updated",
+    "parameters": [
+      {
+        "name": "secondStaffEducationOrganizationAssignmentAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 52,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "Staffs",
+    "scenarioStep": "01 - Check first Staff is valid",
+    "parameters": [
+      {
+        "name": "staffUniqueId",
+        "description": "Staff Unique id"
+      }
+    ]
+  },
+  {
+    "id": 53,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "Staffs",
+    "scenarioStep": "02 - Check second Staff is valid",
+    "parameters": [
+      {
+        "name": "staffUniqueId",
+        "description": "Staff Unique id"
+      }
+    ]
+  },
+  {
+    "id": 54,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "Staffs",
+    "scenarioStep": "03 - Check first Staff highlyQualifiedTeacher was Updated",
+    "parameters": [
+      {
+        "name": "firstStaffUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 55,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "Staffs",
+    "scenarioStep": "04 - Check second Staff hispanicLatinoEthnicity was Updated",
+    "parameters": [
+      {
+        "name": "secondStaffUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 56,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSchoolAssociations",
+    "scenarioStep": "01 - Check first StaffSchoolAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "programAssignmentDescriptorId",
+        "description": "Program Assignment Descriptor id"
+      }
+    ]
+  },
+  {
+    "id": 57,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSchoolAssociations",
+    "scenarioStep": "02 - Check second StaffSchoolAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "programAssignmentDescriptorId",
+        "description": "Program Assignment Descriptor id"
+      }
+    ]
+  },
+  {
+    "id": 58,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSchoolAssociations",
+    "scenarioStep": "03 - Check first StaffSchoolAssociation was Deleted",
+    "parameters": [
+      {
+        "name": "firstStaffSchoolAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 59,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSectionAssociations",
+    "scenarioStep": "01 - Check first StaffSectionAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "staffUniqueId",
+        "description": "Staff Unique id"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 60,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSectionAssociations",
+    "scenarioStep": "02 - Check second StaffSectionAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "staffUniqueId",
+        "description": "Staff Unique id"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 61,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSectionAssociations",
+    "scenarioStep": "03 - Check first StaffSectionAssociation classroomPositionDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstStaffSectionAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 62,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSectionAssociations",
+    "scenarioStep": "04 - Check second StaffSectionAssociation beginDate was Updated",
+    "parameters": [
+      {
+        "name": "secondStaffSectionAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 63,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StaffAssociation",
+    "scenariosName": "StaffSectionAssociations",
+    "scenarioStep": "05 - Check first StaffSectionAssociation was Deleted",
+    "parameters": [
+      {
+        "name": "firstStaffSectionAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 64,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "Student",
+    "scenariosName": "Students",
+    "scenarioStep": "01 - Check first Student is valid",
+    "parameters": [
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      }
+    ]
+  },
+  {
+    "id": 65,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "Student",
+    "scenariosName": "Students",
+    "scenarioStep": "02 - Check second Student is valid",
+    "parameters": [
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      }
+    ]
+  },
+  {
+    "id": 66,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "Student",
+    "scenariosName": "Students",
+    "scenarioStep": "03 - Check first Student birthDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 67,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "Student",
+    "scenariosName": "Students",
+    "scenarioStep": "04 - Check second Student birthCity was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 68,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSchoolAttendanceEvents",
+    "scenarioStep": "01 - Check first StudentSchoolAttendanceEvent is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "eventDate",
+        "description": ""
+      },
+      {
+        "name": "attendanceEventCategoryDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 69,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSchoolAttendanceEvents",
+    "scenarioStep": "02 - Check second StudentSchoolAttendanceEvent is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "eventDate",
+        "description": ""
+      },
+      {
+        "name": "attendanceEventCategoryDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 70,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSchoolAttendanceEvents",
+    "scenarioStep": "03 - Check first StudentSchoolAttendanceEvent was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentSchoolAttendanceEventUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 71,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSchoolAttendanceEvents",
+    "scenarioStep": "04 - Check second StudentSchoolAttendanceEvent was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentSchoolAttendanceEventUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 72,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSchoolAttendanceEvents",
+    "scenarioStep": "05 - Check first StudentSchoolAttendanceEvent was Deleted",
+    "parameters": [
+      {
+        "name": "firstStudentSchoolAttendanceEventUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 73,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSectionAttendanceEvents",
+    "scenarioStep": "01 - Check first StudentSectionAttendanceEvent is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "eventDate",
+        "description": ""
+      },
+      {
+        "name": "attendanceEventCategoryDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 74,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSectionAttendanceEvents",
+    "scenarioStep": "02 - Check second StudentSectionAttendanceEvent is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "eventDate",
+        "description": ""
+      },
+      {
+        "name": "attendanceEventCategoryDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 75,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSectionAttendanceEvents",
+    "scenarioStep": "03 - Check first StudentSectionAttendanceEvent was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentSectionAttendanceEventUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 76,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSectionAttendanceEvents",
+    "scenarioStep": "04 - Check second StudentSectionAttendanceEvent was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentSectionAttendanceEventUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 77,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentAttendance",
+    "scenariosName": "StudentSectionAttendanceEvents",
+    "scenarioStep": "05 - Check first StudentSectionAttendanceEvent was Deleted",
+    "parameters": [
+      {
+        "name": "firstStudentSectionAttendanceEventUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 78,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "Cohorts",
+    "scenarioStep": "01 - Check first Cohort is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "cohortIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 79,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "Cohorts",
+    "scenarioStep": "02 - Check second Cohort is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "cohortIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 80,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "Cohorts",
+    "scenarioStep": "03 - Check first Cohort cohortTypeDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstCohortUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 81,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "Cohorts",
+    "scenarioStep": "04 - Check second Cohort cohortTypeDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "secondCohortUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 82,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StaffCohortAssociations",
+    "scenarioStep": "01 - Check first StaffCohortAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "cohortIdentifier",
+        "description": ""
+      },
+      {
+        "name": "staffUniqueId",
+        "description": "Staff Unique id"
+      }
+    ]
+  },
+  {
+    "id": 83,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StaffCohortAssociations",
+    "scenarioStep": "02 - Check second StaffCohortAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "cohortIdentifier",
+        "description": ""
+      },
+      {
+        "name": "staffUniqueId",
+        "description": "Staff Unique id"
+      }
+    ]
+  },
+  {
+    "id": 84,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StaffCohortAssociations",
+    "scenarioStep": "03 - Check first StaffCohortAssociation endDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStaffCohortAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 85,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StaffCohortAssociations",
+    "scenarioStep": "04 - Check second StaffCohortAssociation endDate was Updated",
+    "parameters": [
+      {
+        "name": "secondStaffCohortAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 86,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StaffCohortAssociations",
+    "scenarioStep": "05 - Check first StaffCohortAssociation was Deleted",
+    "parameters": [
+      {
+        "name": "firstStaffCohortAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 87,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StudentCohortAssociations",
+    "scenarioStep": "01 - Check first StudentCohortAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "cohortIdentifier",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 88,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StudentCohortAssociations",
+    "scenarioStep": "02 - Check second StudentCohortAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "cohortIdentifier",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 89,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentCohort",
+    "scenariosName": "StudentCohortAssociations",
+    "scenarioStep": "03 - Check first StudentCohortAssociation endDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentCohortAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 90,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineAction",
+    "scenarioStep": "01 - Check first DisciplineAction is valid",
+    "parameters": [
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "disciplineDate",
+        "description": ""
+      },
+      {
+        "name": "disciplineActionIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 91,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineAction",
+    "scenarioStep": "02 - Check second DisciplineAction is valid",
+    "parameters": [
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "disciplineDate",
+        "description": ""
+      },
+      {
+        "name": "disciplineActionIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 92,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineAction",
+    "scenarioStep": "03 - Check first DisciplineAction disciplineDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstDisciplineActionUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 93,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineAction",
+    "scenarioStep": "04 - Check second DisciplineAction disciplineDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "secondDisciplineActionUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 94,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineAction",
+    "scenarioStep": "05 - Check first DisciplineAction was Deleted",
+    "parameters": [
+      {
+        "name": "firstDisciplineActionUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 95,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineIncident",
+    "scenarioStep": "01 - Check first DisciplineIncident is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "incidentIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 96,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineIncident",
+    "scenarioStep": "02 - Check second DisciplineIncident is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "incidentIdentifier",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 97,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineIncident",
+    "scenarioStep": "03 - Check first DisciplineIncident reporterName was Updated",
+    "parameters": [
+      {
+        "name": "firstDisciplineIncidentUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 98,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "DisciplineIncident",
+    "scenarioStep": "04 - Check second DisciplineIncident incidentLocationDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "secondDisciplineIncidentUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 99,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "StudDisciplineIncidentBehaviorAssocs",
+    "scenarioStep": "01 - Check first StudDisciplineIncidentBehaviorAssocs is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "behaviorDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 100,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "StudDisciplineIncidentBehaviorAssocs",
+    "scenarioStep": "02 - Check second StudDisciplineIncidentBehaviorAssocs is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "behaviorDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 101,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentDiscipline",
+    "scenariosName": "StudDisciplineIncidentBehaviorAssocs",
+    "scenarioStep": "03 - Check first StudDisciplineIncidentBehaviorAssocs was Deleted",
+    "parameters": [
+      {
+        "name": "firstStudDisciplineIncidentBehaviorAssocsUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 102,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "GraduationPlans",
+    "scenarioStep": "01 - Check first GraduationPlan is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "graduationPlanTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 103,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "GraduationPlans",
+    "scenarioStep": "02 - Check second GraduationPlan is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "graduationPlanTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 104,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "GraduationPlans",
+    "scenarioStep": "03 - Check first GraduationPlan totalRequiredCredits was Updated",
+    "parameters": [
+      {
+        "name": "firstGraduationPlanUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 105,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "GraduationPlans",
+    "scenarioStep": "04 - Check second GraduationPlan totalRequiredCredits was Updated",
+    "parameters": [
+      {
+        "name": "secondGraduationPlanUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 106,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentEdOrgAssociations",
+    "scenarioStep": "01 - Check first StudentEdOrgAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      }
+    ]
+  },
+  {
+    "id": 107,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentEdOrgAssociations",
+    "scenarioStep": "02 - Check second StudentEdOrgAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      }
+    ]
+  },
+  {
+    "id": 108,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentEdOrgAssociations",
+    "scenarioStep": "03 - Check first StudentEdOrgAssociation telephoneNumber was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentEdOrgAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 109,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentEdOrgAssociations",
+    "scenarioStep": "04 - Check second StudentEdOrgAssociation streetNumberName was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentEdOrgAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 110,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSchoolAssociations",
+    "scenarioStep": "01 - Check first StudentSchoolAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "entryDate",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 111,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSchoolAssociations",
+    "scenarioStep": "02 - Check second StudentSchoolAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "entryDate",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 112,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSchoolAssociations",
+    "scenarioStep": "03 - Check first StudentSchoolAssociation entryDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentSchoolAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 113,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSchoolAssociations",
+    "scenarioStep": "04 - Check second StudentSchoolAssociation graduationPlanAndCalendarCode was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentSchoolAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 114,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSchoolAssociations",
+    "scenarioStep": "05 - Check first StudentSchoolAssociation exitWithdrawDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentSchoolAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 115,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSchoolAssociations",
+    "scenarioStep": "06 - Check first StudentSchoolAssociation was Deleted",
+    "parameters": [
+      {
+        "name": "firstStudentSchoolAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 116,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSectionAssociations",
+    "scenarioStep": "01 - Check first StudentSectionAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 117,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSectionAssociations",
+    "scenarioStep": "02 - Check second StudentSectionAssociation is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 118,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSectionAssociations",
+    "scenarioStep": "03 - Check first StudentSectionAssociation endDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentSectionAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 119,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSectionAssociations",
+    "scenarioStep": "04 - Check second StudentSectionAssociation endDate was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentSectionAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 120,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentEnrollment",
+    "scenariosName": "StudentSectionAssociations",
+    "scenarioStep": "05 - Check first StudentSectionAssociation was Deleted",
+    "parameters": [
+      {
+        "name": "firstStudentSectionAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 121,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentGrade",
+    "scenariosName": "Grades",
+    "scenarioStep": "01 - Check first Grade is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "gradingPeriodSchoolYear",
+        "description": ""
+      },
+      {
+        "name": "gradingPeriodSchoolId",
+        "description": "Grading Period School id"
+      },
+      {
+        "name": "gradingPeriodSequence",
+        "description": ""
+      },
+      {
+        "name": "gradingPeriodDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 122,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentGrade",
+    "scenariosName": "Grades",
+    "scenarioStep": "02 - Check second Grade is valid",
+    "parameters": [
+      {
+        "name": "schoolId",
+        "description": "School id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "localCourseCode",
+        "description": ""
+      },
+      {
+        "name": "sessionName",
+        "description": "Session name"
+      },
+      {
+        "name": "sectionIdentifier",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "gradingPeriodSchoolYear",
+        "description": ""
+      },
+      {
+        "name": "gradingPeriodSchoolId",
+        "description": "Grading Period School id"
+      },
+      {
+        "name": "gradingPeriodSequence",
+        "description": ""
+      },
+      {
+        "name": "gradingPeriodDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 123,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentGrade",
+    "scenariosName": "Grades",
+    "scenarioStep": "03 - Check first Grade was Updated",
+    "parameters": [
+      {
+        "name": "firstGradeUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 124,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentGrade",
+    "scenariosName": "Grades",
+    "scenarioStep": "04 - Check second Grade was Updated",
+    "parameters": [
+      {
+        "name": "secondGradeUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 125,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentGrade",
+    "scenariosName": "Grades",
+    "scenarioStep": "05 - Check first Grade was Deleted",
+    "parameters": [
+      {
+        "name": "firstGradeUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 126,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentCTEProgramAssociations",
+    "scenarioStep": "01 - Check first StudentCTEProgramAssociation is valid",
+    "parameters": []
+  },
+  {
+    "id": 127,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentCTEProgramAssociations",
+    "scenarioStep": "02 - Check first StudentCTEProgramAssociation endDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentCTEProgramAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 128,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentHomelessProgramAssociations",
+    "scenarioStep": "01 - Check first StudentHomelessProgramAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 129,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentHomelessProgramAssociations",
+    "scenarioStep": "02 - Check first StudentHomelessProgramAssociation homelessPrimaryNighttimeResidenceDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentHomelessProgramAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 130,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentLangInstProgramAssociations",
+    "scenarioStep": "01 - Check first StudentLangInstProgramAssociation is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 131,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentLangInstProgramAssociations",
+    "scenarioStep": "02 - Check first StudentLangInstProgramAssociation proficiencyDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentLanguageInstructionProgramAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 132,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentMigrantProgramAssociations",
+    "scenarioStep": "01 - Check first StudentMigrantEducationProgramAssociation is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 133,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentMigrantProgramAssociations",
+    "scenarioStep": "02 - Check first StudentMigrantEducationProgramAssociation priorityForServices was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentMigrantEducationProgramAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 134,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentProgramAssociations",
+    "scenarioStep": "01 - Check first StudentProgramAssociation is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 135,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentProgramAssociations",
+    "scenarioStep": "02 - Check second StudentProgramAssociation is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 136,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentProgramAssociations",
+    "scenarioStep": "03 - Check first StudentProgramAssociation beginDate was Updated",
+    "parameters": [
+      {
+        "name": "firstStudentProgramAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 137,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentProgramAssociations",
+    "scenarioStep": "04 - Check second StudentProgramAssociation beginDate was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentProgramAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 138,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentProgramAssociations",
+    "scenarioStep": "05 - Check first StudentProgramAssociation was Deleted",
+    "parameters": [
+      {
+        "name": "firstStudentProgramAssociationUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 139,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentSpecEduProgramAssocs",
+    "scenarioStep": "01 - Check first StudSpecEduProgramAssocs is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 140,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentSpecEduProgramAssocs",
+    "scenarioStep": "02 - Check second StudSpecEduProgramAssocs is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 141,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentSpecEduProgramAssocs",
+    "scenarioStep": "03 - Check first StudSpecEduProgramAssocs ideaEligibility was Updated",
+    "parameters": [
+      {
+        "name": "firstStudSpecEduProgramAssocsUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 142,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentSpecEduProgramAssocs",
+    "scenarioStep": "04 - Check second StudSpecEduProgramAssocs ideaEligibility was Updated",
+    "parameters": [
+      {
+        "name": "secondStudSpecEduProgramAssocsUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 143,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentTitleIPartAProgAssocs",
+    "scenarioStep": "01 - Check first StudTitleIPartAProgAssocs is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 144,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentTitleIPartAProgAssocs",
+    "scenarioStep": "02 - Check second StudTitleIPartAProgAssocs is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 145,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentTitleIPartAProgAssocs",
+    "scenarioStep": "03 - Check first StudTitleIPartAProgAssocs titleIPartAParticipantDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "firstStudTitleIPartAProgAssocsUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 146,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudentTitleIPartAProgAssocs",
+    "scenarioStep": "04 - Check second StudTitleIPartAProgAssocs titleIPartAParticipantDescriptor was Updated",
+    "parameters": [
+      {
+        "name": "secondStudTitleIPartAProgAssocsUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 147,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudNeglectedOrDelinquentProgAssocs",
+    "scenarioStep": "01 - Check first StudNeglectedOrDelinquentProgAssocs is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 148,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudNeglectedOrDelinquentProgAssocs",
+    "scenarioStep": "02 - Check first StudNeglectedOrDelinquentProgAssocs service was Updated",
+    "parameters": [
+      {
+        "name": "firstStudNeglectedOrDelinquentProgAssocsUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 149,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudSchoolFoodServProgAssocs",
+    "scenarioStep": "01 - Check first StudSchoolFoodServProgAssocs is valid",
+    "parameters": [
+      {
+        "name": "beginDate",
+        "description": ""
+      },
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "programEducationOrganizationId",
+        "description": "Program Education Organization id"
+      },
+      {
+        "name": "programName",
+        "description": "Program name"
+      },
+      {
+        "name": "programTypeDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 150,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentProgram",
+    "scenariosName": "StudSchoolFoodServProgAssocs",
+    "scenarioStep": "02 - Check first StudSchoolFoodServProgAssocs service was Updated",
+    "parameters": [
+      {
+        "name": "firstStudSchoolFoodServProgAssocsUniqueId",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 151,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentTranscript",
+    "scenariosName": "CourseTranscript",
+    "scenarioStep": "01 - Check first CourseTranscript is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "courseCode",
+        "description": ""
+      },
+      {
+        "name": "termDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 152,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentTranscript",
+    "scenariosName": "CourseTranscript",
+    "scenarioStep": "02 - Check first CourseTranscript finalNumericGradeEarned was Updated",
+    "parameters": []
+  },
+  {
+    "id": 153,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentTranscript",
+    "scenariosName": "CourseTranscript",
+    "scenarioStep": "03 - Check second CourseTranscript is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "courseCode",
+        "description": ""
+      },
+      {
+        "name": "termDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 154,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentTranscript",
+    "scenariosName": "StudentAcademicRecords",
+    "scenarioStep": "01 - Check first StudentAcademicRecord is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "termDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 155,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentTranscript",
+    "scenariosName": "StudentAcademicRecords",
+    "scenarioStep": "02 - Check second StudentAcademicRecord is valid",
+    "parameters": [
+      {
+        "name": "educationOrganizationId",
+        "description": "Education Organization id"
+      },
+      {
+        "name": "schoolYear",
+        "description": ""
+      },
+      {
+        "name": "studentUniqueId",
+        "description": "Student Unique id"
+      },
+      {
+        "name": "termDescriptor",
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": 156,
+    "scenariosVersion": "4.0.0",
+    "scenariosGroup": "StudentTranscript",
+    "scenariosName": "StudentAcademicRecords",
+    "scenarioStep": "03 - Check second StudentAcademicRecord cumulativeAttemptedCredits, cumulativeEarnedCredits and sessionEarnedCredits was Updated",
+    "parameters": [
+      {
+        "name": "secondStudentAcademicRecordUniqueId",
+        "description": ""
+      }
+    ]
+  }
+]

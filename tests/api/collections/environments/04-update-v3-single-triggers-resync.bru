@@ -1,0 +1,36 @@
+meta {
+  name: environments/update v3 single-tenant - triggers resync (200)
+  type: http
+  seq: 4
+  tags: Environments
+}
+
+put {
+  url: {{BASE_URL}}/sb-environments/{{v3SingleEnvId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "name": "V3 Single Tenant Validation",
+    "adminApiUrl": "https://localhost/odsv7-adminv3-single-adminapi",
+    "odsApiDiscoveryUrl": "https://localhost/odsv7-adminv3-single-api"
+  }
+}
+
+tests {
+  test("environments/update v3 single-tenant - status is 2xx", function() {
+    const status = res.getStatus();
+    expect(status).to.be.within(200, 299);
+  });
+  
+  test("environments/update v3 single-tenant - resync was triggered", function() {
+    const body = res.getBody();
+    expect(body).to.have.property("syncQueue");
+  });
+}

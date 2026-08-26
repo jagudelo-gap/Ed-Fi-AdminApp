@@ -77,7 +77,7 @@ export const ViewSbEnvironmentGlobal = (props: { sbEnvironment: GetSbEnvironment
           </ContentSection>
         </PageContentCard>
       </AuthorizeComponent>
-      {sbEnvironment.startingBlocks && (
+      {(sbEnvironment.startingBlocks || sbEnvironment.version !== 'v1') && (
         <AuthorizeComponent
           config={{
             privilege: 'sb-sync-queue:read',
@@ -90,7 +90,7 @@ export const ViewSbEnvironmentGlobal = (props: { sbEnvironment: GetSbEnvironment
             <ContentSection heading="Sync queue">
               <SbSyncQueuesTable
                 defaultFilters={[
-                  { id: 'dataText', value: `{"sbEnvironmentId": ${sbEnvironment.id}}` },
+                  { id: 'sbEnvironmentId', value: sbEnvironment.id },
                 ]}
               />
             </ContentSection>

@@ -1,0 +1,23 @@
+meta {
+  name: environments/cleanup - delete v3 single-tenant (2xx)
+  type: http
+  seq: 7
+  tags: Environments
+}
+
+delete {
+  url: {{BASE_URL}}/sb-environments/{{v3SingleEnvId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+tests {
+  test("environments/cleanup - delete v3 single-tenant status is 2xx", function() {
+    const status = res.getStatus();
+    expect(status).to.be.within(200, 299);
+  });
+}

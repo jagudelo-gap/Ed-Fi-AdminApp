@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { AttributeContainer, AttributesGrid, ContentSection } from '@edanalytics/common-ui';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { roleQueries, teamQueries, userTeamMembershipQueries } from '../../api';
 import { TeamLink, UserGlobalLink } from '../../routes';
 import { RoleGlobalLink } from '../../routes/role-global.routes';

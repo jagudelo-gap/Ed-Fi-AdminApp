@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+# Licensed to the Ed-Fi Alliance under one or more agreements.
+# The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
+# See the LICENSE and NOTICES files in the project root for more information.
 <#
 .SYNOPSIS
     Shuts down the Docker Compose services.
@@ -39,14 +43,19 @@ function Remove-Volumes {
   }
 }
 
+$edfiServicesFile = Join-Path $PSScriptRoot "edfi-services.yml"
+$nginxServicesFile = Join-Path $PSScriptRoot "nginx-compose.yml"
+$adminAppServicesFile = Join-Path $PSScriptRoot "adminapp-services.yml"
+
+$envFile = Join-Path $PSScriptRoot ".env"
 
 try {
     $files = @(
-        "-f", "edfi-services.yml",
-        "-f", "nginx-compose.yml",
-        "-f", "adminapp-services.yml"
+        "-f", $edfiServicesFile,
+        "-f", $nginxServicesFile,
+        "-f", $adminAppServicesFile
     )
-    docker compose $files --env-file ".env"  --profile "*" down
+    docker compose $files --env-file $envFile  --profile "*" down
     if ($V) {
         Remove-Volumes -KeepKeycloakVolume:$KeepKeycloakVolume
     }

@@ -1,5 +1,5 @@
 import { Button, Icon, IconButton, MenuItem } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ActionProps, ActionPropsConfirm, LinkActionProps } from './ActionsType';
 import { ConfirmAction } from './confirmAction';
 
@@ -33,7 +33,7 @@ export const ActionBarButtons = {
           leftIcon={props.icon({})}
           onClick={(e) => {
             e.stopPropagation();
-            confirmProps.onClick && confirmProps.onClick(e);
+            confirmProps.onClick?.(e);
           }}
           title={props.title}
         >
@@ -84,7 +84,7 @@ export const ActionMenuButtons = {
           isDisabled={props.isDisabled || props.isPending}
           onClick={(e) => {
             e.stopPropagation();
-            confirmProps.onClick && confirmProps.onClick(e);
+            confirmProps.onClick?.(e);
           }}
           title={props.title}
         >
@@ -151,7 +151,7 @@ export const TdIconButtons = {
           icon={<Icon as={props.icon} />}
           onClick={(e) => {
             e.stopPropagation();
-            confirmProps.onClick && confirmProps.onClick(e);
+            confirmProps.onClick?.(e);
           }}
           isDisabled={props.isDisabled}
           isLoading={props.isPending}

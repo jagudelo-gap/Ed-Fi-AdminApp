@@ -18,7 +18,7 @@ import { useForm } from 'react-hook-form';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 
 import { noop } from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { edfiTenantQueriesGlobal } from '../../api';
 import { useSbEnvironmentNavContextLoaded } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';

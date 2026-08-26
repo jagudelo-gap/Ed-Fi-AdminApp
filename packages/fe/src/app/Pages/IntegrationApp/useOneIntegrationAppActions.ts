@@ -1,6 +1,6 @@
 import { GetIntegrationAppDto } from '@edanalytics/models';
 import { ActionsType, Icons } from '@edanalytics/common-ui';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePaths } from '../../routes/paths';
 import { useResetIntegrationAppCredentials } from '../../api-v2';
 import { useAuthorize, useTeamNavContext } from '../../helpers';

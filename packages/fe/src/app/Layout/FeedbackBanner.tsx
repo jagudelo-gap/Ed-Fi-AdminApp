@@ -66,7 +66,7 @@ export const FeedbackBanners = () => {
 
   return (
     <Box>
-      {sortBy(Object.entries(banners), 0).map(([id, banner], i) => {
+      {sortBy(Object.entries(banners), 0).map(([id, banner], _i) => {
         const bannerValue =
           typeof banner === 'function' ? banner({ onDelete: onRemove(id) }) : banner;
         const alertProps: Partial<AlertProps> =

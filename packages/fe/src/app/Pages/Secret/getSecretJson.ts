@@ -8,7 +8,7 @@ export function getSecretJson(secret: string | null, fields: SecretFields): Json
     const isValid = fields.every(({ key }) => secretJson && typeof secretJson[key] === 'string');
     if (!isValid) throw new Error('Retrieved secret not valid');
     return secretJson;
-  } catch (NotJson) {
+  } catch {
     return null;
   }
 }

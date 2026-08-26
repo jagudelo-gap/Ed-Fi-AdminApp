@@ -1,7 +1,7 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetOwnershipDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { OwnershipPage } from '../Pages/Ownership/OwnershipPage';
 import { OwnershipsPage } from '../Pages/Ownership/OwnershipsPage';
 import { ownershipQueries } from '../api';

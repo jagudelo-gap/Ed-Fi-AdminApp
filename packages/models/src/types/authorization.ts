@@ -1,7 +1,6 @@
 import { IEdfiTenant, ISbEnvironment } from '../interfaces';
 import {
   BasePrivilege,
-  IntegrationAppPrivilege,
   IntegrationProviderPrivilege,
   TeamBasePrivilege,
   TeamEdfiTenantPrivilege,

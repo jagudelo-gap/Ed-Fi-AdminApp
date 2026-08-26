@@ -2,6 +2,8 @@ import 'reflect-metadata';
 import { SbEnvironment } from '@edanalytics/models-server';
 import {
   EdorgType,
+  SbEnvironmentConfigPrivate,
+  SbEnvironmentConfigPublic,
   TenantDto,
 } from '@edanalytics/models';
 import { transformTenantData } from './admin-api-data-adapter-utils';
@@ -22,10 +24,10 @@ describe('admin-api-data-adapter-utils', () => {
       adminApiUrl: 'https://api.test.com',
       adminApiVersion: 'v1',
       startingBlocks: false,
-    } as any,
+    } as unknown as SbEnvironmentConfigPublic,
     configPrivate: {
       adminApiSecret: 'test-secret',
-    } as any,
+    } as unknown as SbEnvironmentConfigPrivate,
   };
 
   describe('transformTenantData', () => {
@@ -37,6 +39,7 @@ describe('admin-api-data-adapter-utils', () => {
           {
             id: 100,
             name: 'ODS Instance 1',
+            instanceManageId: 42,
             instanceType: 'Production',
             edOrgs: [
               {
@@ -67,6 +70,7 @@ describe('admin-api-data-adapter-utils', () => {
         id: 0,
         odsInstanceId: 100,
         odsInstanceName: 'ODS Instance 1',
+        instanceManageId: 42,
         edfiTenantId: 0,
         sbEnvironmentId: 1,
       });

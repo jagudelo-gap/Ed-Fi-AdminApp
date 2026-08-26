@@ -1,5 +1,4 @@
 import { defineStyle, extendTheme } from '@chakra-ui/react';
-import { transparentize } from '@chakra-ui/theme-tools';
 
 // TODO EA theme
 export const theme = extendTheme({
@@ -160,8 +159,6 @@ export const theme = extendTheme({
       variants: {
         'outline-highlight': defineStyle((props) => {
           const { colorScheme: c } = props;
-          const darkHoverBg = transparentize(`${c}.200`, 0.12)(theme);
-          const darkActiveBg = transparentize(`${c}.200`, 0.24)(theme);
           return {
             border: '1px solid',
             borderColor: c === 'gray' ? 'gray.200' : 'currentColor',
@@ -191,7 +188,7 @@ export const theme = extendTheme({
           };
         }),
         'ghost-dark': defineStyle((props) => {
-          const { colorScheme: c, theme } = props;
+          const { colorScheme: c } = props;
 
           if (c === 'gray') {
             return {

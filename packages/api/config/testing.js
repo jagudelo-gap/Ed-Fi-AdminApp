@@ -22,4 +22,6 @@ module.exports = {
     IV: '<not needed, should factor out but havent bothered yet>',
   },
   WHITELISTED_REDIRECTS: [FE_URL],
+  ADMINAPI_REFRESH_POLL_ATTEMPTS: 3,
+  ADMINAPI_REFRESH_POLL_INTERVAL_MS: 0,
 };

@@ -1,7 +1,7 @@
 import { PageActions, PageContentCard, PageTemplate } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
 import omit from 'lodash/omit';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { sbEnvironmentQueries } from '../../api';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { EditSbEnvironment } from './EditSbEnvironment';

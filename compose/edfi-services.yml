@@ -3,24 +3,31 @@
 
 services:
   # Ed-Fi v7.x - Single tenant
-  v7-single-db-ods:
-    image: edfialliance/${ODS_DB_IMAGE_7X}:${ODS_DB_TAG_7X}
+  odsV7-adminV2-single-db-ods:
+    build:
+      context: ./DB-Ods
+    image: edfiadminapp/db-ods:local
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
       TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      MINIMAL_SQL_PATH: "${MINIMAL_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Minimal.Template.sql}"
+      POPULATED_SQL_PATH: "${POPULATED_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Populated.Template.sql}"
+      EDFI_ODS_DATASET: "${EDFI_ODS_DATASET:-minimal}"
     restart: always
     volumes:
-      - vol-v7-single-db-ods:/var/lib/postgresql/data
+      - vol-odsV7-adminV2-single-db-ods:/var/lib/postgresql/data
+      - ${SQL_BACKUPS_FOLDER:-./db-backup}:/var/opt/pgsql/data/sql-backups/:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -h localhost -p ${POSTGRES_PORT:-5432}']
       start_period: 30s
       retries: 30
       interval: 30s
     networks:
       - edfiadminapp-network
 
-  v7-single-db-admin:
+  odsV7-adminV2-single-db-admin:
     image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -28,12 +35,12 @@ services:
       # The following variables ared used by bootstrap.sh to set up the ODS
       # connection string in the OdsInstances table.
       ODS_PGBOUNCER_PORT: 5432
-      ODS_POSTGRES_HOST: v7-single-db-ods
+      ODS_POSTGRES_HOST: odsV7-adminV2-single-db-ods
       NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
       NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
     volumes:
       - ./settings/bootstrap.sh:/docker-entrypoint-initdb.d/2-bootstrap.sh
-      - vol-db-admin-7x:/var/lib/postgresql/data
+      - vol-odsV7-adminV2-single-db-admin:/var/lib/postgresql/data
     restart: always
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
@@ -43,16 +50,16 @@ services:
     networks:
       - edfiadminapp-network
 
-  v7-single-api:
+  odsV7-adminV2-single-api:
     image: edfialliance/ods-api-web-api:${ODS_API_TAG_7X}
     environment:
-      ADMIN_POSTGRES_HOST: v7-single-db-admin
+      ADMIN_POSTGRES_HOST: odsV7-adminV2-single-db-admin
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PORT: 5432
-      PATH_BASE: '${V7_SINGLE_API_VIRTUAL_NAME}'
+      PATH_BASE: '${ODS_V7_ADMIN_V2_SINGLE_API_VIRTUAL_NAME}'
       TPDM_ENABLED: '${TPDM_ENABLED:-true}'
-      ODS_WAIT_POSTGRES_HOSTS: 'v7-single-db-ods '
+      ODS_WAIT_POSTGRES_HOSTS: 'odsV7-adminV2-single-db-ods '
       NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
       NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
       NPG_API_MAX_POOL_SIZE_ADMIN: '${NPG_API_MAX_POOL_SIZE_ADMIN:-20}'
@@ -65,30 +72,30 @@ services:
     volumes:
       - ${LOGS_FOLDER}:/app/logs
     depends_on:
-      - v7-single-db-ods
-      - v7-single-db-admin
+      - odsV7-adminV2-single-db-ods
+      - odsV7-adminV2-single-db-admin
     restart: always
-    hostname: ${V7_SINGLE_API_VIRTUAL_NAME}
+    hostname: ${ODS_V7_ADMIN_V2_SINGLE_API_VIRTUAL_NAME}
     healthcheck:
-      test: ${V7_SINGLE_API_HEALTHCHECK}
+      test: ${ODS_V7_ADMIN_V2_SINGLE_API_HEALTHCHECK}
       start_period: 30s
       retries: 30
       interval: 30s
     networks:
       - edfiadminapp-network
 
-  v7-single-adminapi:
+  odsV7-adminV2-single-adminapi:
     image: edfialliance/ods-admin-api:${ADMIN_API_TAG_7X}
     environment:
-      ADMIN_POSTGRES_HOST: v7-single-db-admin
+      ADMIN_POSTGRES_HOST: odsV7-adminV2-single-db-admin
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       ASPNETCORE_ENVIRONMENT: docker
       AppSettings__DatabaseEngine: PostgreSql
-      AppSettings__PathBase: '${V7_SINGLE_ADMIN_API_VIRTUAL}'
-      Authentication__Authority: https://localhost/${V7_SINGLE_ADMIN_API_VIRTUAL}
-      Authentication__IssuerUrl: https://localhost/${V7_SINGLE_ADMIN_API_VIRTUAL}
+      AppSettings__PathBase: '${ODS_V7_ADMIN_V2_SINGLE_ADMIN_API_VIRTUAL_NAME}'
+      Authentication__Authority: https://localhost/${ODS_V7_ADMIN_V2_SINGLE_ADMIN_API_VIRTUAL_NAME}
+      Authentication__IssuerUrl: https://localhost/${ODS_V7_ADMIN_V2_SINGLE_ADMIN_API_VIRTUAL_NAME}
       Authentication__SigningKey: ${SIGNING_KEY}
       Authentication__AllowRegistration: true
       AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
@@ -101,17 +108,21 @@ services:
       EnableDockerEnvironment: true
       AppSettings__AllowedOrigins: ${ALLOWED_ORIGINS:-https://localhost}
       AppSettings__EnableApplicationResetEndpoint: ${ENABLE_APPLICATION_RESET_ENDPOINT:-true}
-      ConnectionStrings__EdFi_Admin: 'host=v7-single-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Admin;'
-      ConnectionStrings__EdFi_Security: 'host=v7-single-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Security;'
-      EdFiApiDiscoveryUrl: ${ODS_API_73_SINGLE_DISCOVERY}
+      AppSettings__adminApiMode: v2
+      ConnectionStrings__EdFi_Admin: 'host=odsV7-adminV2-single-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Admin;'
+      ConnectionStrings__EdFi_Security: 'host=odsV7-adminV2-single-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Security;'
+      ConnectionStrings__EdFi_Ods: 'host=odsV7-adminV2-single-db-ods;port=${POSTGRES_PORT:-5432};username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Ods;pooling=true'
+      ConnectionStrings__EdFi_Master: 'host=odsV7-adminV2-single-db-ods;port=${POSTGRES_PORT:-5432};username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=postgres;pooling=true'
+      EdFiApiDiscoveryUrl: ${ODS_V7_ADMIN_V2_SINGLE_API_DISCOVERY_URL}
     volumes:
       - ./settings/log4net.config:/app/log4net/log4net.config
     depends_on:
-      - v7-single-db-admin
+      - odsV7-adminV2-single-db-admin
+      - odsV7-adminV2-single-db-ods
     restart: always
-    hostname: ${V7_SINGLE_ADMIN_API_VIRTUAL}
+    hostname: ${ODS_V7_ADMIN_V2_SINGLE_ADMIN_API_VIRTUAL_NAME}
     healthcheck:
-      test: ${V7_SINGLE_ADMIN_API_HEALTHCHECK}
+      test: ${ODS_V7_ADMIN_V2_SINGLE_ADMIN_API_HEALTHCHECK}
       start_period: 30s
       retries: 30
       interval: 30s
@@ -119,41 +130,55 @@ services:
       - edfiadminapp-network
 
   # Ed-Fi v7.x - Multi tenants
-  v7-tenant1-db-ods:
-    image: edfialliance/${ODS_DB_IMAGE_7X}:${ODS_DB_TAG_7X}
+  odsV7-adminV2-tenant1-db-ods:
+    build:
+      context: ./DB-Ods
+    image: edfiadminapp/db-ods:local
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
       TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      MINIMAL_SQL_PATH: "${MINIMAL_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Minimal.Template.sql}"
+      POPULATED_SQL_PATH: "${POPULATED_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Populated.Template.sql}"
+      EDFI_ODS_DATASET: "${EDFI_ODS_DATASET:-minimal}"
     restart: always
     volumes:
-      - vol-v7-tenant1-db-ods:/var/lib/postgresql/data
+      - vol-odsV7-adminV2-tenant1-db-ods:/var/lib/postgresql/data
+      - ${SQL_BACKUPS_FOLDER:-./db-backup}:/var/opt/pgsql/data/sql-backups/:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -h localhost -p ${POSTGRES_PORT:-5432}']
       start_period: 30s
       retries: 30
       interval: 30s
     networks:
       - edfiadminapp-network
 
-  v7-tenant2-db-ods:
-    image: edfialliance/${ODS_DB_IMAGE_7X}:${ODS_DB_TAG_7X}
+  odsV7-adminV2-tenant2-db-ods:
+    build:
+      context: ./DB-Ods
+    image: edfiadminapp/db-ods:local
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
       TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      MINIMAL_SQL_PATH: "${MINIMAL_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Minimal.Template.sql}"
+      POPULATED_SQL_PATH: "${POPULATED_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Populated.Template.sql}"
+      EDFI_ODS_DATASET: "${EDFI_ODS_DATASET:-minimal}"
     restart: always
     volumes:
-      - vol-v7-tenant2-db-ods:/var/lib/postgresql/data
+      - vol-odsV7-adminV2-tenant2-db-ods:/var/lib/postgresql/data
+      - ${SQL_BACKUPS_FOLDER:-./db-backup}:/var/opt/pgsql/data/sql-backups/:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -h localhost -p ${POSTGRES_PORT:-5432}']
       start_period: 30s
       retries: 30
       interval: 30s
     networks:
       - edfiadminapp-network
 
-  v7-tenant1-db-admin:
+  odsV7-adminV2-tenant1-db-admin:
     image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -161,13 +186,13 @@ services:
       # The following variables ared used by bootstrap.sh to set up the ODS
       # connection string in the OdsInstances table.
       ODS_PGBOUNCER_PORT: 5432
-      ODS_POSTGRES_HOST: v7-tenant1-db-ods
+      ODS_POSTGRES_HOST: odsV7-adminV2-tenant1-db-ods
       NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
       NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
       TENANT_IDENTIFIER: tenant1
     volumes:
       - ./settings/bootstrap.sh:/docker-entrypoint-initdb.d/2-bootstrap.sh
-      - vol-v7-tenant1-db-admin:/var/lib/postgresql/data
+      - vol-odsV7-adminV2-tenant1-db-admin:/var/lib/postgresql/data
     restart: always
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
@@ -177,7 +202,7 @@ services:
     networks:
       - edfiadminapp-network
 
-  v7-tenant2-db-admin:
+  odsV7-adminV2-tenant2-db-admin:
     image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -185,13 +210,13 @@ services:
       ODS_PGBOUNCER_PORT: 5432
       # The following variables ared used by bootstrap.sh to set up the ODS
       # connection string in the OdsInstances table.
-      ODS_POSTGRES_HOST: v7-tenant2-db-ods
+      ODS_POSTGRES_HOST: odsV7-adminV2-tenant2-db-ods
       NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
       NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
       TENANT_IDENTIFIER: tenant2
     volumes:
       - ./settings/bootstrap.sh:/docker-entrypoint-initdb.d/2-bootstrap.sh
-      - vol-v7-tenant2-db-admin:/var/lib/postgresql/data
+      - vol-odsV7-adminV2-tenant2-db-admin:/var/lib/postgresql/data
     restart: always
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
@@ -201,15 +226,15 @@ services:
     networks:
       - edfiadminapp-network
 
-  v7-multi-api:
+  odsV7-adminV2-multi-api:
     image: edfialliance/ods-api-web-api:${ODS_API_TAG_7X}
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PORT: 5432
-      PATH_BASE: '${V7_MULTI_API_VIRTUAL_NAME}'
+      PATH_BASE: '${ODS_V7_ADMIN_V2_MULTI_API_VIRTUAL_NAME}'
       TPDM_ENABLED: '${TPDM_ENABLED:-true}'
-      ODS_WAIT_POSTGRES_HOSTS: 'v7-tenant1-db-ods v7-tenant2-db-ods '
+      ODS_WAIT_POSTGRES_HOSTS: 'odsV7-adminV2-tenant1-db-ods odsV7-adminV2-tenant2-db-ods '
       NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
       NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
       NPG_API_MAX_POOL_SIZE_ADMIN: '${NPG_API_MAX_POOL_SIZE_ADMIN:-20}'
@@ -219,46 +244,47 @@ services:
       ASPNETCORE_ENVIRONMENT: 'docker'
     volumes:
       - ${LOGS_FOLDER}:/app/logs
-      - ./settings/appsettings.dockertemplate.json:/app/appsettings.dockertemplate.json
+      - ./settings/appsettings.v2.dockertemplate.json:/app/appsettings.v2.dockertemplate.json
     entrypoint: ['/bin/sh']
     command:
       [
         '-c',
-        'envsubst < /app/appsettings.dockertemplate.json > /app/appsettings.docker.json && /app/run.sh',
+        'envsubst < /app/appsettings.v2.dockertemplate.json > /app/appsettings.docker.json && /app/run.sh',
       ]
     depends_on:
-      - v7-tenant1-db-ods
-      - v7-tenant2-db-ods
-      - v7-tenant1-db-admin
-      - v7-tenant2-db-admin
+      - odsV7-adminV2-tenant1-db-ods
+      - odsV7-adminV2-tenant2-db-ods
+      - odsV7-adminV2-tenant1-db-admin
+      - odsV7-adminV2-tenant2-db-admin
     restart: always
-    hostname: ${V7_MULTI_API_VIRTUAL_NAME}
+    hostname: ${ODS_V7_ADMIN_V2_MULTI_API_VIRTUAL_NAME}
     healthcheck:
-      test: ${V7_API_HEALTHCHECK_TEST}
+      test: ${ODS_V7_ADMIN_V2_MULTI_API_HEALTHCHECK_TEST}
       start_period: 30s
       retries: 30
       interval: 30s
     networks:
       - edfiadminapp-network
 
-  v7-multi-adminapi:
+  odsV7-adminV2-multi-adminapi:
     image: edfialliance/ods-admin-api:${ADMIN_API_TAG_7X}
     environment:
-      ADMIN_WAIT_POSTGRES_HOSTS: 'v7-tenant1-db-admin v7-tenant2-db-admin '
+      ADMIN_WAIT_POSTGRES_HOSTS: 'odsV7-adminV2-tenant1-db-admin odsV7-adminV2-tenant2-db-admin '
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       ASPNETCORE_ENVIRONMENT: multitenantdocker
       AppSettings__DatabaseEngine: PostgreSql
-      AppSettings__PathBase: '${V7_MULTI_ADMINAPI_VIRTUAL_NAME}'
-      Authentication__Authority: https://localhost/${V7_MULTI_ADMINAPI_VIRTUAL_NAME}
-      Authentication__IssuerUrl: https://localhost/${V7_MULTI_ADMINAPI_VIRTUAL_NAME}
+      AppSettings__PathBase: '${ODS_V7_ADMIN_V2_MULTI_ADMIN_API_VIRTUAL_NAME}'
+      Authentication__Authority: https://localhost/${ODS_V7_ADMIN_V2_MULTI_ADMIN_API_VIRTUAL_NAME}
+      Authentication__IssuerUrl: https://localhost/${ODS_V7_ADMIN_V2_MULTI_ADMIN_API_VIRTUAL_NAME}
       Authentication__SigningKey: ${SIGNING_KEY}
       Authentication__AllowRegistration: true
       AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
       AppSettings__DefaultPageSizeLimit: ${PAGING_LIMIT:-25}
       AppSettings__MultiTenancy: ${MULTITENANCY_ENABLED:-true}
       AppSettings__EnableApplicationResetEndpoint: ${ENABLE_APPLICATION_RESET_ENDPOINT:-true}
+      AppSettings__adminApiMode: v2
       AppSettings__EncryptionKey: ${ODS_CONNECTION_STRING_ENCRYPTION_KEY}
       SwaggerSettings__EnableSwagger: true
       SwaggerSettings__DefaultTenant: ${SWAGGER_DEFAULT_TENANT:-tenant1}
@@ -267,23 +293,341 @@ services:
       AppSettings__AllowedOrigins: ${ALLOWED_ORIGINS:-https://localhost}
       # Increase rate limiting for Connect/Register endpoint
       IpRateLimiting__GeneralRules__0__Limit: 25
-      EdFiApiDiscoveryUrl: ${ODS_API_73_MULTI_DISCOVERY}
+      EdFiApiDiscoveryUrl: ${ODS_V7_ADMIN_V2_MULTI_API_DISCOVERY_URL}
     volumes:
-      - ./settings/appsettings.dockertemplate.json:/app/appsettings.dockertemplate.json
+      - ./settings/appsettings.v2.dockertemplate.json:/app/appsettings.v2.dockertemplate.json
       - ./settings/log4net.config:/app/log4net/log4net.config
     entrypoint: ['/bin/sh']
     command:
       [
         '-c',
-        'envsubst < /app/appsettings.dockertemplate.json > /app/appsettings.multitenantdocker.json && /app/run.sh',
+        'envsubst < /app/appsettings.v2.dockertemplate.json > /app/appsettings.multitenantdocker.json && /app/run.sh',
       ]
     depends_on:
-      - v7-tenant1-db-admin
-      - v7-tenant2-db-admin
+      - odsV7-adminV2-tenant1-db-ods
+      - odsV7-adminV2-tenant2-db-ods
+      - odsV7-adminV2-tenant1-db-admin
+      - odsV7-adminV2-tenant2-db-admin
     restart: always
-    hostname: ${V7_MULTI_ADMINAPI_VIRTUAL_NAME}
+    hostname: ${ODS_V7_ADMIN_V2_MULTI_ADMIN_API_VIRTUAL_NAME}
     healthcheck:
-      test: ${V7_ADMIN_API_HEALTHCHECK_TEST}
+      test: ${ODS_V7_ADMIN_V2_MULTI_ADMIN_API_HEALTHCHECK_TEST}
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  # Ed-Fi v7.x - Single tenant (Admin API v3)
+  odsV7-adminV3-single-db-ods:
+    build:
+      context: ./DB-Ods
+    image: edfiadminapp/db-ods:local
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
+      TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      MINIMAL_SQL_PATH: "${MINIMAL_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Minimal.Template.sql}"
+      POPULATED_SQL_PATH: "${POPULATED_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Populated.Template.sql}"
+      EDFI_ODS_DATASET: "${EDFI_ODS_DATASET:-minimal}"
+    restart: always
+    volumes:
+      - vol-odsV7-adminV3-single-db-ods:/var/lib/postgresql/data
+      - ${SQL_BACKUPS_FOLDER:-./db-backup}:/var/opt/pgsql/data/sql-backups/:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -h localhost -p ${POSTGRES_PORT:-5432}']
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-single-db-admin:
+    image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # The following variables ared used by bootstrap.sh to set up the ODS
+      # connection string in the OdsInstances table.
+      ODS_PGBOUNCER_PORT: 5432
+      ODS_POSTGRES_HOST: odsV7-adminV3-single-db-ods
+      NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
+      NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
+    volumes:
+      - ./settings/bootstrap.sh:/docker-entrypoint-initdb.d/2-bootstrap.sh
+      - vol-odsV7-adminV3-single-db-admin:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-single-api:
+    image: edfialliance/ods-api-web-api:${ODS_API_TAG_7X}
+    environment:
+      ADMIN_POSTGRES_HOST: odsV7-adminV3-single-db-admin
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: 5432
+      PATH_BASE: '${ODS_V7_ADMIN_V3_SINGLE_API_VIRTUAL_NAME}'
+      TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      ODS_WAIT_POSTGRES_HOSTS: 'odsV7-adminV3-single-db-ods '
+      NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
+      NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
+      NPG_API_MAX_POOL_SIZE_ADMIN: '${NPG_API_MAX_POOL_SIZE_ADMIN:-20}'
+      NPG_API_MAX_POOL_SIZE_SECURITY: '${NPG_API_MAX_POOL_SIZE_SECURITY:-20}'
+      NPG_API_MAX_POOL_SIZE_MASTER: '${NPG_API_MAX_POOL_SIZE_MASTER:-20}'
+      ODS_CONNECTION_STRING_ENCRYPTION_KEY: '${ODS_CONNECTION_STRING_ENCRYPTION_KEY}'
+      ASPNETCORE_ENVIRONMENT: 'docker'
+      FeatureManagement__MultiTenancy: false
+      ApiSettings__OdsContextRouteTemplate: '{instanceId}'
+    volumes:
+      - ${LOGS_FOLDER}:/app/logs
+    depends_on:
+      - odsV7-adminV3-single-db-ods
+      - odsV7-adminV3-single-db-admin
+    restart: always
+    hostname: ${ODS_V7_ADMIN_V3_SINGLE_API_VIRTUAL_NAME}
+    healthcheck:
+      test: ${ODS_V7_ADMIN_V3_SINGLE_API_HEALTHCHECK}
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-single-adminapi:
+    image: edfialliance/ods-admin-api:${ADMIN_API_TAG_7X}
+    environment:
+      ADMIN_POSTGRES_HOST: odsV7-adminV3-single-db-admin
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ASPNETCORE_ENVIRONMENT: docker
+      AppSettings__DatabaseEngine: PostgreSql
+      AppSettings__PathBase: '${ODS_V7_ADMIN_V3_SINGLE_ADMIN_API_VIRTUAL_NAME}'
+      Authentication__Authority: https://localhost/${ODS_V7_ADMIN_V3_SINGLE_ADMIN_API_VIRTUAL_NAME}
+      Authentication__IssuerUrl: https://localhost/${ODS_V7_ADMIN_V3_SINGLE_ADMIN_API_VIRTUAL_NAME}
+      Authentication__SigningKey: ${SIGNING_KEY}
+      Authentication__AllowRegistration: true
+      AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
+      AppSettings__DefaultPageSizeLimit: ${PAGING_LIMIT:-25}
+      AppSettings__MultiTenancy: false
+      AppSettings__EncryptionKey: ${ODS_CONNECTION_STRING_ENCRYPTION_KEY}
+      SwaggerSettings__EnableSwagger: true
+      SwaggerSettings__DefaultTenant: ${SWAGGER_DEFAULT_TENANT:-tenant1}
+      Log4NetCore__Log4NetConfigFileName: ./log4net/log4net.config
+      EnableDockerEnvironment: true
+      AppSettings__AllowedOrigins: ${ALLOWED_ORIGINS:-https://localhost}
+      AppSettings__EnableApplicationResetEndpoint: ${ENABLE_APPLICATION_RESET_ENDPOINT:-true}
+      AppSettings__adminApiMode: v3
+      ConnectionStrings__EdFi_Admin: 'host=odsV7-adminV3-single-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Admin;'
+      ConnectionStrings__EdFi_Security: 'host=odsV7-adminV3-single-db-admin;port=5432;username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Security;'
+      ConnectionStrings__EdFi_Ods: 'host=odsV7-adminV3-single-db-ods;port=${POSTGRES_PORT:-5432};username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=EdFi_Ods;pooling=true'
+      ConnectionStrings__EdFi_Master: 'host=odsV7-adminV3-single-db-ods;port=${POSTGRES_PORT:-5432};username=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=postgres;pooling=true'
+      EdFiApiDiscoveryUrl: ${ODS_V7_ADMIN_V3_SINGLE_API_DISCOVERY_URL}
+    volumes:
+      - ./settings/log4net.config:/app/log4net/log4net.config
+    depends_on:
+      - odsV7-adminV3-single-db-admin
+      - odsV7-adminV3-single-db-ods
+    restart: always
+    hostname: ${ODS_V7_ADMIN_V3_SINGLE_ADMIN_API_VIRTUAL_NAME}
+    healthcheck:
+      test: ${ODS_V7_ADMIN_V3_SINGLE_ADMIN_API_HEALTHCHECK}
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  # Ed-Fi v7.x - Multi tenants (Admin API v3)
+  odsV7-adminV3-tenant1-db-ods:
+    build:
+      context: ./DB-Ods
+    image: edfiadminapp/db-ods:local
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
+      TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      MINIMAL_SQL_PATH: "${MINIMAL_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Minimal.Template.sql}"
+      POPULATED_SQL_PATH: "${POPULATED_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Populated.Template.sql}"
+      EDFI_ODS_DATASET: "${EDFI_ODS_DATASET:-minimal}"
+    restart: always
+    volumes:
+      - vol-odsV7-adminV3-tenant1-db-ods:/var/lib/postgresql/data
+      - ${SQL_BACKUPS_FOLDER:-./db-backup}:/var/opt/pgsql/data/sql-backups/:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -h localhost -p ${POSTGRES_PORT:-5432}']
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-tenant2-db-ods:
+    build:
+      context: ./DB-Ods
+    image: edfiadminapp/db-ods:local
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: "${POSTGRES_PORT:-5432}"
+      TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      MINIMAL_SQL_PATH: "${MINIMAL_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Minimal.Template.sql}"
+      POPULATED_SQL_PATH: "${POPULATED_SQL_PATH:-/var/opt/pgsql/data/sql-backups/EdFi.Ods.Populated.Template.sql}"
+      EDFI_ODS_DATASET: "${EDFI_ODS_DATASET:-minimal}"
+    restart: always
+    volumes:
+      - vol-odsV7-adminV3-tenant2-db-ods:/var/lib/postgresql/data
+      - ${SQL_BACKUPS_FOLDER:-./db-backup}:/var/opt/pgsql/data/sql-backups/:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -h localhost -p ${POSTGRES_PORT:-5432}']
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-tenant1-db-admin:
+    image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # The following variables ared used by bootstrap.sh to set up the ODS
+      # connection string in the OdsInstances table.
+      ODS_PGBOUNCER_PORT: 5432
+      ODS_POSTGRES_HOST: odsV7-adminV3-tenant1-db-ods
+      NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
+      NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
+      TENANT_IDENTIFIER: tenant1
+    volumes:
+      - ./settings/bootstrap.sh:/docker-entrypoint-initdb.d/2-bootstrap.sh
+      - vol-odsV7-adminV3-tenant1-db-admin:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-tenant2-db-admin:
+    image: edfialliance/ods-admin-api-db:${ADMIN_DB_TAG_7X}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ODS_PGBOUNCER_PORT: 5432
+      # The following variables ared used by bootstrap.sh to set up the ODS
+      # connection string in the OdsInstances table.
+      ODS_POSTGRES_HOST: odsV7-adminV3-tenant2-db-ods
+      NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
+      NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
+      TENANT_IDENTIFIER: tenant2
+    volumes:
+      - ./settings/bootstrap.sh:/docker-entrypoint-initdb.d/2-bootstrap.sh
+      - vol-odsV7-adminV3-tenant2-db-admin:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready  -U ${POSTGRES_USER}']
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-multi-api:
+    image: edfialliance/ods-api-web-api:${ODS_API_TAG_7X}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: 5432
+      PATH_BASE: '${ODS_V7_ADMIN_V3_MULTI_API_VIRTUAL_NAME}'
+      TPDM_ENABLED: '${TPDM_ENABLED:-true}'
+      ODS_WAIT_POSTGRES_HOSTS: 'odsV7-adminV3-tenant1-db-ods odsV7-adminV3-tenant2-db-ods '
+      NPG_POOLING_ENABLED: '${NPG_POOLING_ENABLED:-true}'
+      NPG_API_MAX_POOL_SIZE_ODS: '${NPG_API_MAX_POOL_SIZE_ODS:-20}'
+      NPG_API_MAX_POOL_SIZE_ADMIN: '${NPG_API_MAX_POOL_SIZE_ADMIN:-20}'
+      NPG_API_MAX_POOL_SIZE_SECURITY: '${NPG_API_MAX_POOL_SIZE_SECURITY:-20}'
+      NPG_API_MAX_POOL_SIZE_MASTER: '${NPG_API_MAX_POOL_SIZE_MASTER:-20}'
+      ODS_CONNECTION_STRING_ENCRYPTION_KEY: '${ODS_CONNECTION_STRING_ENCRYPTION_KEY}'
+      ASPNETCORE_ENVIRONMENT: 'docker'
+    volumes:
+      - ${LOGS_FOLDER}:/app/logs
+      - ./settings/appsettings.v3.dockertemplate.json:/app/appsettings.v3.dockertemplate.json
+    entrypoint: ['/bin/sh']
+    command:
+      [
+        '-c',
+        'envsubst < /app/appsettings.v3.dockertemplate.json > /app/appsettings.docker.json && /app/run.sh',
+      ]
+    depends_on:
+      - odsV7-adminV3-tenant1-db-ods
+      - odsV7-adminV3-tenant2-db-ods
+      - odsV7-adminV3-tenant1-db-admin
+      - odsV7-adminV3-tenant2-db-admin
+    restart: always
+    hostname: ${ODS_V7_ADMIN_V3_MULTI_API_VIRTUAL_NAME}
+    healthcheck:
+      test: ${ODS_V7_ADMIN_V3_MULTI_API_HEALTHCHECK_TEST}
+      start_period: 30s
+      retries: 30
+      interval: 30s
+    networks:
+      - edfiadminapp-network
+
+  odsV7-adminV3-multi-adminapi:
+    image: edfialliance/ods-admin-api:${ADMIN_API_TAG_7X}
+    environment:
+      ADMIN_WAIT_POSTGRES_HOSTS: 'odsV7-adminV3-tenant1-db-admin odsV7-adminV3-tenant2-db-admin '
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ASPNETCORE_ENVIRONMENT: multitenantdocker
+      AppSettings__DatabaseEngine: PostgreSql
+      AppSettings__PathBase: '${ODS_V7_ADMIN_V3_MULTI_ADMIN_API_VIRTUAL_NAME}'
+      Authentication__Authority: https://localhost/${ODS_V7_ADMIN_V3_MULTI_ADMIN_API_VIRTUAL_NAME}
+      Authentication__IssuerUrl: https://localhost/${ODS_V7_ADMIN_V3_MULTI_ADMIN_API_VIRTUAL_NAME}
+      Authentication__SigningKey: ${SIGNING_KEY}
+      Authentication__AllowRegistration: true
+      AppSettings__DefaultPageSizeOffset: ${PAGING_OFFSET:-0}
+      AppSettings__DefaultPageSizeLimit: ${PAGING_LIMIT:-25}
+      AppSettings__MultiTenancy: ${MULTITENANCY_ENABLED:-true}
+      AppSettings__EnableApplicationResetEndpoint: ${ENABLE_APPLICATION_RESET_ENDPOINT:-true}
+      AppSettings__adminApiMode: v3
+      AppSettings__EncryptionKey: ${ODS_CONNECTION_STRING_ENCRYPTION_KEY}
+      SwaggerSettings__EnableSwagger: true
+      SwaggerSettings__DefaultTenant: ${SWAGGER_DEFAULT_TENANT:-tenant1}
+      Log4NetCore__Log4NetConfigFileName: ./log4net/log4net.config
+      EnableDockerEnvironment: true
+      AppSettings__AllowedOrigins: ${ALLOWED_ORIGINS:-https://localhost}
+      # Increase rate limiting for Connect/Register endpoint
+      IpRateLimiting__GeneralRules__0__Limit: 25
+      EdFiApiDiscoveryUrl: ${ODS_V7_ADMIN_V3_MULTI_API_DISCOVERY_URL}
+    volumes:
+      - ./settings/appsettings.v3.dockertemplate.json:/app/appsettings.v3.dockertemplate.json
+      - ./settings/log4net.config:/app/log4net/log4net.config
+    entrypoint: ['/bin/sh']
+    command:
+      [
+        '-c',
+        'envsubst < /app/appsettings.v3.dockertemplate.json > /app/appsettings.multitenantdocker.json && /app/run.sh',
+      ]
+    depends_on:
+      - odsV7-adminV3-tenant1-db-ods
+      - odsV7-adminV3-tenant2-db-ods
+      - odsV7-adminV3-tenant1-db-admin
+      - odsV7-adminV3-tenant2-db-admin
+    restart: always
+    hostname: ${ODS_V7_ADMIN_V3_MULTI_ADMIN_API_VIRTUAL_NAME}
+    healthcheck:
+      test: ${ODS_V7_ADMIN_V3_MULTI_ADMIN_API_HEALTHCHECK_TEST}
       start_period: 30s
       retries: 30
       interval: 30s
@@ -445,24 +789,42 @@ networks:
     external: true
 
 volumes:
-  vol-v7-single-db-ods:
+  vol-odsV7-adminV2-single-db-ods:
     driver: local
-    name: vol-v7-single-db-ods
-  vol-db-admin-7x:
+    name: vol-odsV7-adminV2-single-db-ods
+  vol-odsV7-adminV2-single-db-admin:
     driver: local
-    name: vol-db-admin-7x
-  vol-v7-tenant1-db-ods:
+    name: vol-odsV7-adminV2-single-db-admin
+  vol-odsV7-adminV2-tenant1-db-ods:
     driver: local
-    name: vol-v7-tenant1-db-ods
-  vol-v7-tenant2-db-ods:
+    name: vol-odsV7-adminV2-tenant1-db-ods
+  vol-odsV7-adminV2-tenant2-db-ods:
     driver: local
-    name: vol-v7-tenant2-db-ods
-  vol-v7-tenant1-db-admin:
+    name: vol-odsV7-adminV2-tenant2-db-ods
+  vol-odsV7-adminV2-tenant1-db-admin:
     driver: local
-    name: vol-v7-tenant1-db-admin
-  vol-v7-tenant2-db-admin:
+    name: vol-odsV7-adminV2-tenant1-db-admin
+  vol-odsV7-adminV2-tenant2-db-admin:
     driver: local
-    name: vol-v7-tenant2-db-admin
+    name: vol-odsV7-adminV2-tenant2-db-admin
+  vol-odsV7-adminV3-single-db-ods:
+    driver: local
+    name: vol-odsV7-adminV3-single-db-ods
+  vol-odsV7-adminV3-single-db-admin:
+    driver: local
+    name: vol-odsV7-adminV3-single-db-admin
+  vol-odsV7-adminV3-tenant1-db-ods:
+    driver: local
+    name: vol-odsV7-adminV3-tenant1-db-ods
+  vol-odsV7-adminV3-tenant2-db-ods:
+    driver: local
+    name: vol-odsV7-adminV3-tenant2-db-ods
+  vol-odsV7-adminV3-tenant1-db-admin:
+    driver: local
+    name: vol-odsV7-adminV3-tenant1-db-admin
+  vol-odsV7-adminV3-tenant2-db-admin:
+    driver: local
+    name: vol-odsV7-adminV3-tenant2-db-admin
   vol-db-admin-6x:
     driver: local
     name: vol-db-admin-6x

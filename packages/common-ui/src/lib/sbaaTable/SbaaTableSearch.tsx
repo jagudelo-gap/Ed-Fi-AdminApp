@@ -9,11 +9,8 @@ import {
 import { DebouncedInput, DivComponent, Icons, useSbaaTableContext } from '..';
 
 export const SbaaTableSearch: DivComponent = (props) => {
-  const { children, ...rest } = props;
-  const {
-    table,
-    showSettings: [showSettings, setShowSettings],
-  } = useSbaaTableContext();
+  const { children: _children, ...rest } = props;
+  const { table } = useSbaaTableContext();
 
   if (!table) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,7 +62,7 @@ export const SbaaTableSearch: DivComponent = (props) => {
 };
 
 export const SbaaTableAdvancedButton: ChakraComponent<'button'> = (props) => {
-  const { children, onClick, ...rest } = props;
+  const { children: _children, onClick: _onClick, ...rest } = props;
   const {
     table,
     showSettings: [showSettings, setShowSettings],

@@ -1,5 +1,6 @@
 import nx from '@nx/eslint-plugin';
-import parser from 'jsonc-eslint-parser';
+import reactHooks from 'eslint-plugin-react-hooks';
+import * as parser from 'jsonc-eslint-parser';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
@@ -24,6 +25,9 @@ export default [
       '**/migrations',
       '**/vite.config.*.timestamp*',
       '**/vitest.config.*.timestamp*',
+      '**/tests/e2e/.features-gen',
+      '**/packages/api/certification',
+      '**/.nx',
     ],
   },
   ...fixupConfigRules(
@@ -68,6 +72,24 @@ export default [
 
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/fe/**/*.tsx', 'packages/common-ui/**/*.tsx'],
+    plugins: {
+      'react-hooks': reactHooks,
+    },
+    rules: {
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
   ...compat.extends('plugin:@nx/javascript').map((config) => ({
@@ -86,5 +108,32 @@ export default [
     },
 
     rules: {},
+  },
+  {
+    files: ['tests/e2e/**/*.ts'],
+    rules: {
+      'no-empty-pattern': 'off',
+    },
+  },
+  {
+    files: ['**/*.d.ts'],
+    rules: {
+      'no-var': 'off',
+    },
+  },
+  {
+    files: ['packages/api/src/test/helpers/**/*.ts'],
+    rules: {
+      'jest/no-export': 'off',
+    },
+  },
+  {
+    files: ['packages/api/scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+      },
+    },
   },
 ];

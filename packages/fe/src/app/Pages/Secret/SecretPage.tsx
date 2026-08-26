@@ -9,7 +9,7 @@ import {
 import type { SystemStyleObject } from '@chakra-ui/system';
 import { ConfirmAction, SecretValue } from '@edanalytics/common-ui';
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { getMessage } from './yopass';
 import { UnretrievableError } from './UnretrievableError';
 import { getFieldsFromSearchParams } from './getFieldsFromSearchParams';
@@ -42,7 +42,7 @@ const SecretPage = () => {
   const [secret, setSecret] = useState<string | null>(null);
 
   const fields = getFieldsFromSearchParams(search);
-  let secretJson = getSecretJson(secret, fields);
+  const secretJson = getSecretJson(secret, fields);
   const [isUnretrievable, setIsUnretrievable] = useBoolean(false);
 
   return (

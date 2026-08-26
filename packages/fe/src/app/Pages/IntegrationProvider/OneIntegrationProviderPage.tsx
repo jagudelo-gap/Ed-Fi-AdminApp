@@ -1,6 +1,6 @@
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useGetOneIntegrationProvider } from '../../api-v2';
 import { ViewIntegrationProvider } from './ViewIntegrationProvider';
 import { useSearchParamsObject } from '../../helpers/useSearch';

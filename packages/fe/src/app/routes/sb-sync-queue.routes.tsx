@@ -1,11 +1,11 @@
 import { Link, Text } from '@chakra-ui/react';
-import { GetEdfiTenantDto, SbSyncQueueDto } from '@edanalytics/models';
+import { SbSyncQueueDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { SbSyncQueuePage } from '../Pages/SbSyncQueue/SbSyncQueuePage';
 import { SbSyncQueuesPage } from '../Pages/SbSyncQueue/SbSyncQueuesPage';
 import { sbSyncQueueQueries } from '../api';
-import { getRelationDisplayName, useEdfiTenantNavContext } from '../helpers';
+import { getRelationDisplayName, useIsStartingBlocksDeployment } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 
 const SbSyncQueueBreadcrumb = () => {
@@ -30,9 +30,14 @@ export const sbSyncQueuesIndexRoute: RouteObject = {
   path: '/sb-sync-queues/',
   element: <SbSyncQueuesPage />,
 };
+const SbSyncQueuesBreadcrumb = () => {
+  const isStartingBlocks = useIsStartingBlocksDeployment();
+  return isStartingBlocks ? 'SB sync queue' : 'Ed-Fi Data Store Sync Queue';
+};
+
 export const sbSyncQueuesRoute: RouteObject = {
   path: '/sb-sync-queues',
-  handle: { crumb: () => 'SB sync queue' },
+  handle: { crumb: SbSyncQueuesBreadcrumb },
 };
 
 export const SbSyncQueueLink = (props: {

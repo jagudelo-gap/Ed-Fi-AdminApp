@@ -1,0 +1,1 @@
+export const asBool = (value: unknown): boolean => value === true || value === 'true';

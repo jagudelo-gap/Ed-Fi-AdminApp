@@ -1,6 +1,5 @@
 import {
   AddEdorgDtoV2,
-  ApplicationYopassResponseDto,
   EnvNavDto,
   GetApplicationDto,
   GetClaimsetDto,
@@ -48,8 +47,8 @@ import {
   SbSyncQueueDto,
   SpecificIds,
   ApplicationResponseV1,
-  PostApplicationResponseDto,
-  PutOdsDto
+  PutOdsDto,
+  SyncEdOrgsResponseDto
 } from '@edanalytics/models';
 import { QueryKey, UseQueryOptions, useQueries } from '@tanstack/react-query';
 import kebabCase from 'kebab-case';
@@ -57,6 +56,7 @@ import path from 'path-browserify';
 import { authCacheKey } from '../../helpers';
 import { apiClient } from '../methods';
 import { EntityQueryBuilder, queryKeyNew, standardPath } from './builder';
+import { TeamOptions } from './team-options';
 
 const baseUrl = '';
 
@@ -129,12 +129,6 @@ export const queryKey = (params: {
 export const teamUrl = (url: string, teamId?: number | string | undefined) =>
   teamId === undefined ? path.join(baseUrl, url) : path.join(baseUrl, 'teams', String(teamId), url);
 
-export enum TeamOptions {
-  Never,
-  Optional,
-  Required,
-}
-
 export type EdfiTenantParamsType<IncludeEdfiTenant extends boolean> = IncludeEdfiTenant extends true
   ? { edfiTenantId: number | string }
   : object;
@@ -148,6 +142,27 @@ export const edorgQueries = new EntityQueryBuilder({
   .getAll('getAll', { ResDto: GetEdorgDto })
   .post('post', { ReqDto: AddEdorgDtoV2, ResDto: class Nothing {} })
   .delete('delete')
+  .post(
+    'syncEdOrgs',
+    {
+      ReqDto: class {},
+      ResDto: SyncEdOrgsResponseDto,
+      keysToInvalidate: (params) => [
+        queryKey({
+          resourceName: 'Edorg',
+          edfiTenantId: params.edfiTenant.id,
+          id: false,
+        }),
+      ],
+    },
+    (base) =>
+      standardPath({
+        edfiTenant: base.edfiTenant,
+        teamId: base.teamId,
+        kebabCaseName: 'edorg',
+        id: 'sync-edorgs',
+      })
+  )
   .build();
 
 export const odsQueries = new EntityQueryBuilder({
@@ -187,6 +202,27 @@ export const odsQueries = new EntityQueryBuilder({
       kebabCaseName: 'ods',
       id: `${odsId}/row-count`,
     })
+  )
+  .post(
+    'syncEdOrgs',
+    {
+      ReqDto: class {},
+      ResDto: class {},
+      keysToInvalidate: (params) => [
+        queryKeyNew({
+          kebabCaseName: 'edorg',
+          edfiTenant: params.edfiTenant,
+          id: false,
+        }),
+      ],
+    },
+    (base, { odsId }: { odsId: string }) =>
+      standardPath({
+        edfiTenant: base.edfiTenant,
+        teamId: base.teamId,
+        kebabCaseName: 'ods',
+        id: `${odsId}/sync-edorgs`,
+      })
   )
   .build();
 
@@ -285,6 +321,9 @@ export const sbEnvironmentQueriesGlobal = new EntityQueryBuilder({
           ...params.standardQueryKeyParams,
           pathOverride: undefined,
         }),
+        // Invalidate all tenant-scoped queries (ODS, EdOrgs, etc.) since any
+        // tenant in this environment may have been updated by the sync.
+        ['edfi-tenants'],
       ],
     },
     (base) => `${baseUrl}/sb-environments/${base.entity.id}/refresh-resources`
@@ -349,7 +388,25 @@ export const edfiTenantQueriesGlobal = new EntityQueryBuilder({
   )
   .put(
     'refreshResources',
-    { ReqDto: Id, ResDto: SbSyncQueueDto, keysToInvalidate: (params) => [['sb-sync-queues']] },
+    {
+      ReqDto: Id,
+      ResDto: SbSyncQueueDto,
+      keysToInvalidate: (params) => [
+        ['sb-sync-queues'],
+        // Invalidate ODS and EdOrg caches for this specific tenant so the UI
+        // reflects the completed sync immediately without needing a page reload.
+        queryKeyNew({
+          kebabCaseName: 'ods',
+          edfiTenant: params.entity as unknown as GetEdfiTenantDto,
+          id: false,
+        }),
+        queryKeyNew({
+          kebabCaseName: 'edorg',
+          edfiTenant: params.entity as unknown as GetEdfiTenantDto,
+          id: false,
+        }),
+      ],
+    },
     (base) =>
       `${baseUrl}/sb-environments/${base.sbEnvironmentId}/edfi-tenants/${base.entity.id}/refresh-resources`
   )

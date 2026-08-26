@@ -25,7 +25,7 @@ export function applyDtoUpdates<TEntity, TDto extends object>(
 ): TEntity {
   for (const field of allowedFields) {
     if (Object.prototype.hasOwnProperty.call(dto, field)) {
-      (entity as any)[field] = dto[field];
+      (entity as Record<PropertyKey, unknown>)[field as PropertyKey] = dto[field];
     }
   }
   return entity;

@@ -12,6 +12,7 @@ module.exports = {
   USE_YOPASS: false,
   YOPASS_URL: 'http://localhost:8082',
   EDFI_URLS_TIMEOUT_MS: 5000, // 5 seconds
+  OIDC_DISCOVERY_TIMEOUT_MS: 10000, // 10 seconds
 
   DB_ENGINE: 'pgsql', // 'pgsql' or 'mssql'
   DB_TRUST_CERTIFICATE: true, // For MSSQL local development using self-signed certs, set to true
@@ -58,10 +59,7 @@ module.exports = {
     ISSUER: 'https://localhost/auth/realms/edfi',
     CLIENT_ID: 'edfiadminapp',
     CLIENT_SECRET: 'big-secret-123',
-    MACHINE_AUDIENCE: 'edfiadminapp-api',
-    MANAGEMENT_DOMAIN: 'localhost',
-    MANAGEMENT_CLIENT_ID: 'edfiadminapp-machine',
-    MANAGEMENT_CLIENT_SECRET: 'edfi-machine-secret-456'
+    MACHINE_AUDIENCE: 'edfiadminapp-api'
   },
 
   WHITELISTED_REDIRECTS: [FE_URL],
@@ -75,6 +73,15 @@ module.exports = {
   RATE_LIMIT_LIMIT: 10,
 
   USE_PKCE: true,
+
+  SSL_VERIFICATION: false,
+  // Admin API EdOrg refresh polling (overrides default.js values if needed)
+  ADMINAPI_REFRESH_POLL_ATTEMPTS: 10,
+  ADMINAPI_REFRESH_POLL_INTERVAL_MS: 5000,
+  // Certification artifact configuration
+  CERT_BRUNO_SRC_REF: 'v2.1.0', // Tag name or commit ref
+  CERT_BRUNO_SRC_CHECKSUM: '71840f51f464c60d7b90c7bbf08d9be039df291d51dd69085ffc4703b98f11e6',
+  CERT_BRUNO_ON_DOWNLOAD_ERROR: 'error', // 'error' | 'warning' // Whether to error out or just warn if there's a problem downloading or initializing the certification artifact. Note that if set to 'warning' and there's a problem with the certification artifact, any API routes depending on it will fail at runtime when they attempt to use the artifact.
 
   // There are other defaults you can override if you want to. See default.js.
 };

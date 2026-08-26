@@ -2,6 +2,7 @@ import { Routes } from '@nestjs/core';
 
 import { AdminApiModuleV1 } from '../teams/edfi-tenants/starting-blocks/v1/admin-api.v1.module';
 import { AdminApiModuleV2 } from '../teams/edfi-tenants/starting-blocks/v2/admin-api.v2.module';
+import { AdminApiModuleV3 } from '../teams/edfi-tenants/starting-blocks/v3/admin-api.v3.module';
 import { EdfiTenantsGlobalModule } from '../edfi-tenants-global/edfi-tenants-global.module';
 import { EdfiTenantsModule } from '../teams/edfi-tenants/edfi-tenants.module';
 import { EdorgsGlobalModule } from '../edfi-tenants-global/edorgs-global/edorgs-global.module';
@@ -80,6 +81,10 @@ export const routes: Routes = [
       {
         path: '/:teamId/edfi-tenants/:edfiTenantId/admin-api/v2',
         module: AdminApiModuleV2,
+      },
+      {
+        path: '/:teamId/edfi-tenants/:edfiTenantId/admin-api/v3',
+        module: AdminApiModuleV3,
       },
     ],
   },

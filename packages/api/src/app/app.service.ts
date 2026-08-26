@@ -12,7 +12,7 @@ export class AppService {
   onApplicationShutdown() {
     try {
       // this.entityManager.connection.isInitialized && this.entityManager.connection.destroy();
-    } catch (error) {
+    } catch (_error) {
       // do nothing
     }
   }

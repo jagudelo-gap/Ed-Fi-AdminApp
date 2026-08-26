@@ -1,5 +1,5 @@
 import { Box } from '@chakra-ui/react';
-import { Meta } from '@storybook/react';
+import { Meta } from '@storybook/react-vite';
 import { SbaaTable, SbaaTableFilters, SbaaTablePagination, SbaaTableSearch } from '.';
 import { makeData } from '../dataTable/storybook-helpers/helpers';
 import { SbaaTableProvider } from './SbaaTableProvider';

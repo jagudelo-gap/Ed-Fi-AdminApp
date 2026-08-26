@@ -1,7 +1,6 @@
 import React from 'react';
-import { router } from '../src/app/Routes';
 
-declare module 'react-router-dom' {
+declare module 'react-router' {
   function useMatches(): {
     id: string;
     pathname: string;

@@ -1,6 +1,4 @@
 import { ContentSection, PageActions, PageContentCard, PageTemplate } from '@edanalytics/common-ui';
-import { useQuery } from '@tanstack/react-query';
-import { roleQueries, userQueries } from '../../api';
 import { useMultipleUserGlobalActions } from './useMultipleUserGlobalActions';
 import { MachineUsersTable } from './MachineUsersTable';
 import { HumanUsersTable } from './HumanUsersTable';

@@ -13,7 +13,12 @@ export interface IOds extends IEntityBase {
 
   odsInstanceId: number | null;
   odsInstanceName: string | null;
+  instanceType: string | null;
+  instanceManageId: number | null;
   dbName: string;
+  status: string | null;
+  databaseTemplate: string | null;
+  databaseName: string | null;
   edorgs: IEdorg[];
 
   integrationApps: IIntegrationApp[];

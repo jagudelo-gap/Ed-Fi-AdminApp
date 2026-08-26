@@ -3,7 +3,7 @@ import { DivComponent, useSbaaTableContext } from './SbaaTableProvider';
 import { Icons } from '../Icons';
 
 export const SbaaTablePagination: DivComponent = (props) => {
-  const { children, ...rest } = props;
+  const { children: _children, ...rest } = props;
   const { table, pageSizes } = useSbaaTableContext();
 
   if (!table) {

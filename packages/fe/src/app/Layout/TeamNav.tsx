@@ -6,7 +6,7 @@ import set from 'lodash/set';
 import sortBy from 'lodash/sortBy';
 import uniq from 'lodash/uniq';
 import { useEffect, useMemo, useState } from 'react';
-import { useMatches, useParams } from 'react-router-dom';
+import { useMatches, useParams } from 'react-router';
 import { sbEnvironmentQueries, teamQueries } from '../api';
 import {
   AuthorizeConfig,
@@ -86,7 +86,9 @@ export const TeamNav = (props: { teamId: string }) => {
     edfiTenantId ? { [sbEnvironmentId!]: [Number(edfiTenantId)] } : {}
   );
   useEffect(() => {
-    edfiTenantId && setLastTenantFromNav({ [sbEnvironmentId!]: [Number(edfiTenantId)] });
+    if (edfiTenantId) {
+      setLastTenantFromNav({ [sbEnvironmentId!]: [Number(edfiTenantId)] });
+    }
   }, [edfiTenantId, sbEnvironmentId]);
   useEffect(() => {
     setLastTenantFromNav({});
@@ -179,7 +181,7 @@ export const TeamNav = (props: { teamId: string }) => {
 
   const envNavTenantNams = useMemo(() => {
     const items: Record<number, Record<number, string>> = {};
-    Object.entries(envNavList.data || {}).forEach(([key, value]) => {
+    Object.entries(envNavList.data || {}).forEach(([_key, value]) => {
       set(items, `${value.sbEnvironmentId}.${value.edfiTenantId}`, value.edfiTenantName);
     });
     return items;
@@ -346,7 +348,7 @@ export const TeamNav = (props: { teamId: string }) => {
                               privilege: 'team.sb-environment.edfi-tenant.profile:read',
                               subject: privilegeSubject,
                             },
-                          }) && sbEnvironment?.version === 'v2',
+                          }) && sbEnvironment?.version !== 'v1',
                           {
                             route: `${tenantRootUrl}/profiles`,
                             icon: Icons.Profile,

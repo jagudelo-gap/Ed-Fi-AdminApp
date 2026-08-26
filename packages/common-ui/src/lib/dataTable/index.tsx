@@ -80,7 +80,7 @@ export const getColumnFilterParam = (
           value: item.v,
         }))
       : [];
-  } catch (parsingError) {
+  } catch (_parsingError) {
     return [];
   }
 };
@@ -110,7 +110,9 @@ export const setGlobalFilterParam = (
 ) => {
   const paramName = getPrefixedName('search', prefix);
   searchParams.delete(paramName);
-  state && searchParams.set(paramName, state);
+  if (state) {
+    searchParams.set(paramName, state);
+  }
   return searchParams;
 };
 export const stringifyColumnFilters = (state: ColumnFiltersState) =>
@@ -122,7 +124,9 @@ export const setColumnFilterParam = (
 ) => {
   const paramName = getPrefixedName('colfilter', prefix);
   searchParams.delete(paramName);
-  state.length && searchParams.set(paramName, stringifyColumnFilters(state));
+  if (state.length) {
+    searchParams.set(paramName, stringifyColumnFilters(state));
+  }
   return searchParams;
 };
 
@@ -164,6 +168,11 @@ export const DebouncedInput = forwardRef<
     }, debounce);
 
     return () => clearTimeout(timeout);
+    // debounce and onChange intentionally omitted: onChange is often a fresh
+    // reference each render from the parent, and including it (or debounce)
+    // here would reset/reschedule the debounce timer on every parent render
+    // instead of only when the input value changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   return (

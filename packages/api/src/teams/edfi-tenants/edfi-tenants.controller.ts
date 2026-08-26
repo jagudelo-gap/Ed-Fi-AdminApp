@@ -73,7 +73,7 @@ export class EdfiTenantsController {
   async findOne(
     @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
     @Param('sbEnvironmentId', new ParseIntPipe()) sbEnvironmentId: number,
-    @Param('teamId', new ParseIntPipe()) teamId: number
+    @Param('teamId', new ParseIntPipe()) _teamId: number
   ) {
     return toGetEdfiTenantDto(
       await this.edfiTenantsRepository.findOneBy({

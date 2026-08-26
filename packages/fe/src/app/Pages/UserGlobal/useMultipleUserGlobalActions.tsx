@@ -1,5 +1,5 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { globalUserAuthConfig, useAuthorize } from '../../helpers';
 
 export const useMultipleUserGlobalActions = (): ActionsType => {

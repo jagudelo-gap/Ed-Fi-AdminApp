@@ -1,7 +1,7 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetTeamDto } from '@edanalytics/models';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { teamQueries } from '../../api';
 import { globalTeamAuthConfig, useAuthorize } from '../../helpers';

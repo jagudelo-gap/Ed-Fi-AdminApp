@@ -1,0 +1,44 @@
+meta {
+  name: environments/create v3 multi-tenant - OK (201)
+  type: http
+  seq: 2
+  tags: Environments
+}
+
+post {
+  url: {{BASE_URL}}/sb-environments
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+body:json {
+  {
+    "name": "V3 Multi Tenant Validation",
+    "version": "v3",
+    "startingBlocks": false,
+    "isMultitenant": true,
+    "adminApiUrl": "https://localhost/odsv7-adminv3-multi-adminapi",
+    "odsApiDiscoveryUrl": "https://localhost/odsv7-adminv3-multi-api"
+  }
+}
+
+vars:post-response {
+  v3MultiEnvId: res.body.id
+}
+
+tests {
+  test("environments/create v3 multi-tenant - status is 2xx", function() {
+    const status = res.getStatus();
+    expect(status).to.be.within(200, 299);
+  });
+  
+  test("environments/create v3 multi-tenant - response includes id and syncQueue", function() {
+    const body = res.getBody();
+    expect(body).to.have.property("id");
+    expect(body).to.have.property("syncQueue");
+  });
+}

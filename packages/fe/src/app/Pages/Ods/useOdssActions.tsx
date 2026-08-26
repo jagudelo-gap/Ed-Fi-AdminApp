@@ -1,14 +1,16 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import {
   teamEdfiTenantAuthConfig,
   useAuthorize,
   useTeamSbEnvironmentNavContext,
 } from '../../helpers';
+import { useOdsTerminology } from './useOdsTerminology';
 
 export const useOdssActions = (): ActionsType => {
   const navigate = useNavigate();
-  const { edfiTenantId, sbEnvironmentId, sbEnvironment, teamId } = useTeamSbEnvironmentNavContext();
+  const { edfiTenantId, sbEnvironmentId, teamId } = useTeamSbEnvironmentNavContext();
+  const terminology = useOdsTerminology();
 
   const canPost = useAuthorize(
     teamEdfiTenantAuthConfig(
@@ -18,12 +20,12 @@ export const useOdssActions = (): ActionsType => {
       'team.sb-environment.edfi-tenant:create-ods'
     )
   );
-  return canPost && sbEnvironment?.startingBlocks
+  return canPost
     ? {
         Create: {
           icon: Icons.Plus,
           text: 'Create',
-          title: 'Create new ODS.',
+          title: `Create new ${terminology.singular}.`,
           to: `/as/${teamId}/sb-environments/${sbEnvironmentId}/edfi-tenants/${edfiTenantId}/odss/create`,
           onClick: () =>
             edfiTenantId !== undefined &&

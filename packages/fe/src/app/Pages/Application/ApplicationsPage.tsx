@@ -156,7 +156,7 @@ export const ApplicationsPageContent = () => {
                 .filter((odsId) => odsId !== undefined)
             ).join(', '),
           header: 'Ods',
-          cell: ({ row: { original: application }, getValue }) =>
+          cell: ({ row: { original: application } }) =>
             uniq(
               application._educationOrganizationIds
                 .map(

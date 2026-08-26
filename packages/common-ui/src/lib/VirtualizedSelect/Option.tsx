@@ -6,8 +6,12 @@ import { useSize } from './utils';
 import type { Size } from './utils';
 import { MenuIcon, useColorModeValue, Text } from '@chakra-ui/react';
 import { OptionProps } from 'chakra-react-select';
-import type { ThemeObject } from 'chakra-react-select';
 import { CheckIcon } from './CheckIcon';
+
+type MenuItemStylesWithPseudo = SystemStyleObject & {
+  _focus?: SystemStyleObject;
+  _disabled?: SystemStyleObject;
+};
 
 export const Option = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>(
   props: OptionProps<Option, IsMulti, Group>
@@ -33,7 +37,7 @@ export const Option = <Option, IsMulti extends boolean, Group extends GroupBase<
 
   const size = useSize(sizeProp);
 
-  const menuItemStyles: ThemeObject = useMultiStyleConfig('Menu').item;
+  const menuItemStyles = useMultiStyleConfig('Menu').item as MenuItemStylesWithPseudo;
 
   const paddings: Record<Size, string> = {
     sm: '0.3rem 0.6rem',

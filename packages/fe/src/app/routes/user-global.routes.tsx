@@ -1,7 +1,7 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetUserDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { CreateUser } from '../Pages/UserGlobal/CreateUserGlobalPage';
 import { UserGlobalPage } from '../Pages/UserGlobal/UserGlobalPage';
 import { UsersGlobalPage } from '../Pages/UserGlobal/UsersGlobalPage';

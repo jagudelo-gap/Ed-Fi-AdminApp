@@ -2,9 +2,9 @@
 # It assumes there are two different tenants named "tenant1" and "tenant2". Each has
 # only one ODS instance.
 
-@adminapi_url=https://localhost/v7-single-adminapi
-@odsapi_url=https://localhost/v7-single-api
-@adminapi_client=adminapi_client
+@adminapi_url=https://localhost/odsv7-adminv2-single-adminapi
+@odsapi_url=https://localhost/odsv7-adminv2-single-api
+@adminapi_client=adminapi_client33
 @adminapi_secret=adminapi_SECRET_2025_rftyguhijkotgyhuijok
 
 ##
@@ -53,7 +53,7 @@ Authorization: bearer {{token}}
 Tenant: tenant1
 
 {
-  "company": "Vendor 1",
+  "company": "Vendor 2",
   "contactName": "Fake Person",
   "contactEmailAddress": "fake@example.com"
 }
@@ -64,18 +64,35 @@ Content-Type: application/json
 Authorization: bearer {{token}}
 Tenant: tenant1
 
+### insert an ods instance route contexts
+POST {{adminapi_url}}/v2/odsinstanceContexts
+Content-Type: application/json
+Authorization: bearer {{token}}
+Tenant: tenant1
+
+{
+  "odsInstanceId": 1,
+  "contextKey": "instanceId",
+  "contextValue": "255901"
+}
+
+###
+GET {{adminapi_url}}/v2/odsinstanceContexts
+Authorization: bearer {{token}}
+Tenant: tenant1
 
 ### Create application
 # NOTE: adjust the `vendorId` to match the `Location` header from request above.
 # NOTE: also adjust odsInstanceIds.
+# @name applicationMyApp2
 POST {{adminapi_url}}/v2/applications
 Content-Type: application/json
 Authorization: bearer {{token}}
 Tenant: tenant1
 
 {
-  "applicationName": "myapp_1",
-  "vendorId": 1,
+  "applicationName": "myapp_2",
+  "vendorId": 2,
   "claimSetName": "SIS Vendor",
   "educationOrganizationIds": [
     0
@@ -89,15 +106,15 @@ Tenant: tenant1
 ### Create ApiClient (new endpoint for v2.3)
 # NOTE: adjust the `applicationId` to match the `Location` header from request above.
 # @name tenant1ApiClient
-POST {{adminapi_url}}/v2/apiclients
+POST {{adminapi_url}}/v2/apiClients
 Content-Type: application/json
 Authorization: bearer {{token}}
 Tenant: tenant1
 
 {
-  "name": "appc1",
+  "name": "appc2",
   "isApproved": true,
-  "applicationId": 1,
+  "applicationId": {{applicationMyApp2.response.body.id}},
   "odsInstanceIds": [
     1
   ]
@@ -121,13 +138,9 @@ Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials&client_id={{tenant1ApiClient.response.body.key}}&&client_secret={{tenant1ApiClient.response.body.secret}}
 
-### Use the token
-GET {{odsapi_url}}/tenant1/data/v3/ed-fi/academicSubjectDescriptors
-Authorization: bearer {{tenant1ApiToken.response.body.access_token}}
-
 ### Create a Person
 # @name createPerson
-POST {{odsapi_url}}/tenant1/data/v3/ed-fi/people
+POST {{odsapi_url}}/255901/data/v3/ed-fi/people
 Content-Type: application/json
 Authorization: bearer {{tenant1ApiToken.response.body.access_token}}
 
@@ -167,14 +180,15 @@ Tenant: tenant2
 ### Create application
 # NOTE: adjust the `vendorId` to match the `Location` header from request above.
 # NOTE: also adjust odsInstanceIds.
+# @name applicationMyApp3
 POST {{adminapi_url}}/v2/applications
 Content-Type: application/json
 Authorization: bearer {{token}}
 Tenant: tenant2
 
 {
-  "applicationName": "myapp2",
-  "vendorId": 1,
+  "applicationName": "myapp3",
+  "vendorId": 5,
   "claimSetName": "Ed-Fi API Publisher - Reader",
   "educationOrganizationIds": [
     255901
@@ -186,7 +200,6 @@ Tenant: tenant2
 
 
 ### Create ApiClient (new endpoint for v2.3)
-# NOTE: adjust the `applicationId` to match the `Location` header from request above.
 # @name tenant2ApiClient
 POST {{adminapi_url}}/v2/apiclients
 Content-Type: application/json
@@ -196,7 +209,7 @@ Tenant: tenant2
 {
   "name": "appc2",
   "isApproved": true,
-  "applicationId": 1,
+  "applicationId": {{applicationMyApp3.response.body.id}},
   "odsInstanceIds": [
     1
   ]
@@ -218,5 +231,5 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=client_credentials&client_id={{tenant2ApiClient.response.body.key}}&&client_secret={{tenant2ApiClient.response.body.secret}}
 
 ### Use the token
-GET {{odsapi_url}}/tenant2/data/v3/ed-fi/academicSubjectDescriptors
+GET {{odsapi_url}}/255901/data/v3/ed-fi/academicSubjectDescriptors
 Authorization: bearer {{tenant2ApiToken.response.body.access_token}}

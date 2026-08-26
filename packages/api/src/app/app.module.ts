@@ -7,6 +7,7 @@ import { HealthService } from './health.service';
 
 import { AdminApiModuleV1 } from '../teams/edfi-tenants/starting-blocks/v1/admin-api.v1.module';
 import { AdminApiModuleV2 } from '../teams/edfi-tenants/starting-blocks/v2/admin-api.v2.module';
+import { AdminApiModuleV3 } from '../teams/edfi-tenants/starting-blocks/v3/admin-api.v3.module';
 import { AuthCacheGuard } from '../auth/authorization/authorization-cache.guard';
 import { AuthModule } from '../auth/auth.module';
 import { AuthenticatedGuard } from '../auth/login/authenticated.guard';
@@ -22,6 +23,7 @@ import { OdssGlobalModule } from '../edfi-tenants-global/odss-global/odss-global
 import { OdssModule } from '../teams/edfi-tenants/odss/odss.module';
 import { OwnershipsGlobalModule } from '../ownerships-global/ownerships-global.module';
 import { OwnershipsModule } from '../teams/ownerships/ownerships.module';
+import { JobQueueModule } from '../sb-sync/job-queue/job-queue.module';
 import { PgBossModule } from '../sb-sync/pg-boss.module';
 import { RolesGlobalModule } from '../roles-global/roles-global.module';
 import { RolesModule } from '../teams/roles/roles.module';
@@ -30,6 +32,7 @@ import { SbEnvironmentsGlobalModule } from '../sb-environments-global/sb-environ
 import { SbEnvironmentsModule } from '../teams/sb-environments/sb-environments.module';
 import { SbSyncModule } from '../sb-sync/sb-sync.module';
 import { ServicesModule } from './services.module';
+import { CertificationModule } from '../certification/certification.module';
 import { TeamsGlobalModule } from '../teams/teams-global.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { UserTeamMembershipsGlobalModule } from '../user-team-memberships-global/user-team-memberships-global.module';
@@ -61,6 +64,7 @@ import config from 'config';
     RouterModule.register(routes),
     AdminApiModuleV1,
     AdminApiModuleV2,
+    AdminApiModuleV3,
     AuthModule,
     EdfiTenantsGlobalModule,
     EdfiTenantsModule,
@@ -74,12 +78,14 @@ import config from 'config';
     OwnershipsGlobalModule,
     OwnershipsModule,
     PgBossModule,
+    JobQueueModule,
     RolesGlobalModule,
     RolesModule,
     SbEnvironmentsGlobalModule,
     SbEnvironmentsModule,
     SbSyncModule,
     ServicesModule,
+    CertificationModule,
     TeamsGlobalModule,
     UsersGlobalModule,
     UsersModule,

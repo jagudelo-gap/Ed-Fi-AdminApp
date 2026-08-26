@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetOwnershipDto, GetOwnershipViewDto } from '@edanalytics/models';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { ownershipQueries } from '../../api';
 import { useAuthorize } from '../../helpers';
@@ -9,9 +9,6 @@ import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 export const useOwnershipGlobalActions = (
   ownership: GetOwnershipDto | GetOwnershipViewDto | undefined
 ): ActionsType => {
-  const params = useParams() as {
-    ownershipId: string;
-  };
   const popBanner = usePopBanner();
   const navigate = useNavigate();
   const to = (id: number | string) => `/ownerships/${id}`;

@@ -1,5 +1,5 @@
 import { Attribute, AttributesGrid, ContentSection, PageContentCard } from '@edanalytics/common-ui';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useGetOneIntegrationProvider } from '../../api-v2';
 import { useNavContext } from '../../helpers';
 import { IntegrationAppsTable } from '../IntegrationApp/IntegrationAppsTable';

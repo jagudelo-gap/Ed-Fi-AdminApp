@@ -74,8 +74,8 @@ export class EdorgsController {
   })
   async findOne(
     @Param('edorgId', new ParseIntPipe()) edorgId: number,
-    @Param('teamId', new ParseIntPipe()) teamId: number,
-    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number
+    @Param('teamId', new ParseIntPipe()) _teamId: number,
+    @Param('edfiTenantId', new ParseIntPipe()) _edfiTenantId: number
   ) {
     return toGetEdorgDto(await this.edorgService.findOne(edorgId));
   }
@@ -134,7 +134,7 @@ export class EdorgsController {
     return this.edorgService.add(sbEnvironment, edfiTenant, dto);
   }
 
-  @SbVersion('v2')
+  @SbVersion('v2', 'v3')
   @Operation('Deleting edorgs')
   @Delete(':edorgId')
   @Authorize({
@@ -192,5 +192,24 @@ export class EdorgsController {
       ods.odsInstanceName,
       String(edorg.educationOrganizationId)
     );
+  }
+
+  @SbVersion('v2', 'v3')
+  @Post('sync-edorgs')
+  @Authorize({
+    privilege: EDORG_PRIVILEGES.READ,
+    subject: {
+      id: '__filtered__',
+      edfiTenantId: 'edfiTenantId',
+      teamId: 'teamId',
+    },
+  })
+  async syncEdOrgs(
+    @Param('teamId', new ParseIntPipe()) teamId: number,
+    @Param('edfiTenantId', new ParseIntPipe()) edfiTenantId: number,
+    @ReqEdfiTenant() edfiTenant: EdfiTenant,
+    @ReqSbEnvironment() sbEnvironment: SbEnvironment
+  ) {
+    return this.edorgService.syncAllEdOrgs(sbEnvironment, edfiTenant);
   }
 }

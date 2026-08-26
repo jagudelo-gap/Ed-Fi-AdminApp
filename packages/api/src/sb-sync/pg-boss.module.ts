@@ -1,6 +1,6 @@
 // pg-boss.module.ts
 import { Global, Injectable, Logger, Module, OnApplicationShutdown } from '@nestjs/common';
-import PgBoss from 'pg-boss';
+import { PgBoss } from 'pg-boss';
 import { Client } from 'pg';
 import * as appConfig from 'config';
 
@@ -10,7 +10,11 @@ const onceKeys = new Set<string>();
 function logOnce(key: string, msg: string, meta?: Record<string, unknown>) {
   if (onceKeys.has(key)) return;
   onceKeys.add(key);
-  meta ? log.error(msg + ' ' + JSON.stringify(meta)) : log.error(msg);
+  if (meta) {
+    log.error(msg + ' ' + JSON.stringify(meta));
+  } else {
+    log.error(msg);
+  }
 }
 
 function wait(ms: number) {
@@ -32,7 +36,7 @@ export class PgBossInstance extends PgBoss implements OnApplicationShutdown {
         clearInterval(this._recoveryTimer);
         this._recoveryTimer = undefined;
       }
-      await this.stop({ graceful: false, destroy: true });
+      await this.stop({ graceful: false });
     } catch {
       // ignore
     }
@@ -61,7 +65,7 @@ export class PgBossInstance extends PgBoss implements OnApplicationShutdown {
         // ---- collapse repeated worker errors, stop boss on ECONNREFUSED ----
         let stoppedDueToConnRefused = false;
 
-        boss.on('error', async (err: any) => {
+        boss.on('error', async (err: { code?: string; message?: string; queue?: string }) => {
           const code = err?.code ?? 'UNKNOWN';
           const queue =
             /Queue:\s*([^\s,]+)/.exec(String(err?.message ?? ''))?.[1] ?? err?.queue ?? 'unknown';
@@ -76,7 +80,7 @@ export class PgBossInstance extends PgBoss implements OnApplicationShutdown {
                 { code, queue }
               );
               try {
-                await boss.stop({ graceful: false, destroy: true });
+                await boss.stop({ graceful: false });
               } catch {
                 // ignore
               }
@@ -103,9 +107,8 @@ export class PgBossInstance extends PgBoss implements OnApplicationShutdown {
             started = true;
             log.log(`PgBoss started (attempt ${attempt}/${maxAttempts}).`);
             break;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } catch (err: any) {
-            const code = err?.code ?? 'UNKNOWN';
+          } catch (err: unknown) {
+            const code = (err as { code?: string } | undefined)?.code ?? 'UNKNOWN';
             if (code === 'ECONNREFUSED') {
               const delay = baseDelayMs * Math.pow(2, attempt - 1);
               if (attempt === 1) {
@@ -117,7 +120,9 @@ export class PgBossInstance extends PgBoss implements OnApplicationShutdown {
               }
               if (attempt === maxAttempts) {
                 // final failure: throw once
-                throw new Error('PgBoss failed to start after retries due to ECONNREFUSED.');
+                throw new Error('PgBoss failed to start after retries due to ECONNREFUSED.', {
+                  cause: err,
+                });
               }
               await wait(delay);
               continue;

@@ -1,5 +1,5 @@
 import { GetSbEnvironmentDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { sbEnvironmentQueriesGlobal } from '../../api';
 import {
@@ -11,6 +11,7 @@ import {
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { Icons } from '@edanalytics/common-ui';
+import { config } from '../../../config/config';
 
 export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto | undefined) => {
   const refreshResources = sbEnvironmentQueriesGlobal.refreshResources({});
@@ -63,6 +64,18 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
                 title: 'View ' + sbEnvironment.displayName,
                 to: `/sb-environments/${sbEnvironment.id}`,
                 onClick: () => navigate(`/sb-environments/${sbEnvironment.id}`),
+              },
+            }
+          : {}),
+        ...(config.showRequestCertification && sbEnvironment.version === 'v1'
+          ? {
+              RequestCert: {
+                icon: Icons.Data,
+                text: 'Request certification',
+                title: 'Request certification for ' + sbEnvironment.displayName,
+                to: `/sb-environments/${sbEnvironment.id}/request-certification`,
+                onClick: () =>
+                  navigate(`/sb-environments/${sbEnvironment.id}/request-certification`),
               },
             }
           : {}),
@@ -123,19 +136,19 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
               },
             }
           : {}),
-        ...(canRefreshResources && sbEnvironment.startingBlocks
+        ...(canRefreshResources && !sbEnvironment.startingBlocks && sbEnvironment.version !== 'v1'
           ? {
               RefreshResources: {
                 icon: Icons.Download,
                 isPending: refreshResources.isPending,
-                text: 'Sync with SB',
-                title: 'Sync ODSs and Ed-Orgs from Starting Blocks to SBAA.',
+                text: 'Sync Resources',
+                title: 'Sync ODSs and Ed-Orgs from Admin API.',
                 onClick: async () => {
                   await refreshResources.mutateAsync(
                     { entity: sbEnvironment, pathParams: null },
                     {
                       ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                      onSuccess(result, variables, context) {
+                      onSuccess(result, _variables, _context) {
                         popSyncBanner({
                           popBanner,
                           syncQueue: result,
@@ -159,7 +172,7 @@ export const useSbEnvironmentGlobalActions = (sbEnvironment: GetSbEnvironmentDto
                     { entity: sbEnvironment, pathParams: null },
                     {
                       ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                      onSuccess(result, variables, context) {
+                      onSuccess(result, _variables, _context) {
                         popBanner(result);
                       },
                     }

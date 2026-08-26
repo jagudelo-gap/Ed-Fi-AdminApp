@@ -116,12 +116,20 @@ const mapRows = (rc: GetResourceClaimDtoV2) => {
   return output;
 };
 const actionSortOrder = ['Read', 'Create', 'Update', 'Delete', 'ReadChanges'];
+// indexOf returns -1 for an action not in actionSortOrder, which would sort it
+// before every known action (-1 < 0). Rank unrecognized actions after all known
+// ones instead, with an alphabetical tie-breaker for deterministic ordering.
+const actionSortRank = (action: string) => {
+  const index = actionSortOrder.indexOf(action);
+  return index === -1 ? actionSortOrder.length : index;
+};
 
 export const ResourceClaimsTableV2 = ({ claimset }: { claimset: GetClaimsetSingleDtoV2 }) => {
   const { data, columns } = useMemo(() => {
     // TODO this dynamic-ness is to accommodate buggy Admin API (want to include even unexpected actions). It probably ought to be hardcoded. Revisit eventually.
     const uniqueActions = uniq(claimset.resourceClaims.flatMap(extractActions)).sort(
-      (actionA, actionB) => actionSortOrder.indexOf(actionA) - actionSortOrder.indexOf(actionB)
+      (actionA, actionB) =>
+        actionSortRank(actionA) - actionSortRank(actionB) || actionA.localeCompare(actionB)
     );
     const columns: ColumnDef<ResourceClaimRow>[] = [
       {

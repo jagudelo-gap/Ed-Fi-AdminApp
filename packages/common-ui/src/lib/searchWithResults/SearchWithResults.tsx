@@ -8,13 +8,14 @@ import {
   Stack,
   chakra,
 } from '@chakra-ui/react';
+import type { ReactNode } from 'react';
 import { DebouncedInput } from '../dataTable';
 import { Icons } from '../Icons';
 
 export const SearchWithResults = (props: {
   value: string;
   onChange: (value: string) => void;
-  items: JSX.Element;
+  items: ReactNode;
   openWidth?: string;
 }) => {
   return (

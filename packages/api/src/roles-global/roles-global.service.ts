@@ -4,7 +4,7 @@ import { joinStrsNice } from '@edanalytics/utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
-import { EntityManager, In, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { CheckAbilityType } from '../auth/authorization';
 import { throwNotFound } from '../utils';
 import { CustomHttpException } from '../utils/customExceptions';

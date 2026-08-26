@@ -9,7 +9,7 @@ import {
 } from '@edanalytics/common-ui';
 import { GetRoleDto, RoleType } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { roleQueries, useMyTeams, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { UserGlobalLink } from '../../routes';

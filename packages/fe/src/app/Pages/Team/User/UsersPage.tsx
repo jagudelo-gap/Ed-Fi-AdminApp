@@ -9,7 +9,7 @@ import {
 
 import { GetUserTeamMembershipDto } from '@edanalytics/models';
 import { CellContext } from '@tanstack/react-table';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { roleQueries, userQueries, userTeamMembershipQueries } from '../../../api';
 import { getEntityFromQuery } from '../../../helpers';
 import { getRelationDisplayName } from '../../../helpers/getRelationDisplayName';

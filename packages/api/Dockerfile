@@ -7,12 +7,13 @@
 # file's directory.
 
 # Build stage - Use latest Node.js Alpine with pinned SHA for security and reproducibility
-FROM node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5 AS build
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS build
 
 WORKDIR /app
 
 # Install build toolchain needed for any native deps during install
-RUN apk add --no-cache --virtual .build-deps python3~=3.12 make~=4.4 g++~=14
+# python3/make/g++ pins track the Alpine release bundled in node:*-alpine - bump these together with the base image tag
+RUN apk add --no-cache --virtual .build-deps python3~=3.14 make~=4.4 g++~=15
 
 # Copy package files first for better caching
 COPY package*.json ./
@@ -36,7 +37,7 @@ RUN --mount=type=cache,target=/root/.cache/nx \
     npx nx run api:build:production --verbose --output-style=stream
 
 # Production stage - Minimal runtime image
-FROM node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5 AS runtime
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runtime
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -52,6 +53,7 @@ WORKDIR /app
 
 # Copy package.json for npm prune
 COPY package*.json ./
+COPY packages/api/package.json ./packages/api/package.json
 
 # Copy all node_modules from build stage and prune dev dependencies
 COPY --from=build /app/node_modules ./node_modules
@@ -62,8 +64,8 @@ COPY --from=build --chown=adminapp:nodejs /app/dist/packages/api ./dist/packages
 COPY --chown=adminapp:nodejs packages/api/config/production.js-edfi ./dist/packages/api/config/production.js
 COPY --chown=adminapp:nodejs packages/api/config/custom-environment-variables.js packages/api/config/default.js ./dist/packages/api/config/
 
-# Create logs directory with proper permissions
-RUN mkdir -p logs && chown -R adminapp:nodejs logs
+# Create logs and certification runtime directories with proper permissions
+RUN mkdir -p logs packages/api/certification && chown -R adminapp:nodejs logs packages/api/certification
 
 # Switch to non-root user
 USER adminapp

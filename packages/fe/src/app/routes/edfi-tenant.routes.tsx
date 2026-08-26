@@ -1,7 +1,7 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetEdfiTenantDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { EdfiTenantPage } from '../Pages/EdfiTenant/EdfiTenantPage';
 import { EdfiTenantsPage } from '../Pages/EdfiTenant/EdfiTenantsPage';
 import { edfiTenantQueries } from '../api';

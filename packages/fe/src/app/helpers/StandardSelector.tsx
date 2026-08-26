@@ -15,7 +15,7 @@ import {
 import { Icons, VirtualizedSelect } from '@edanalytics/common-ui';
 import { Select } from 'chakra-react-select';
 import sortBy from 'lodash/sortBy';
-import { ReactNode, forwardRef, useEffect, useMemo, useState } from 'react';
+import { ReactElement, ReactNode, forwardRef, useEffect, useMemo, useState } from 'react';
 import {
   Control,
   Controller,
@@ -46,7 +46,7 @@ function _InnerSelect(
   } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name'>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref?: any
-): JSX.Element;
+): ReactElement;
 function _InnerSelect(
   props: BaseSelectProps & {
     options: OptionsType;
@@ -56,7 +56,7 @@ function _InnerSelect(
   } & Omit<ControllerRenderProps<any, any>, 'ref'>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref?: any
-): JSX.Element;
+): ReactElement;
 function _InnerSelect(
   props: BaseSelectProps & {
     options: OptionsType;
@@ -181,7 +181,7 @@ export function SelectWrapper<Dto extends Record<Name, number>, Name extends key
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             name={props.name as any}
             render={(args) => {
-              const { ref, ...others } = props;
+              const { ref: _ref, ...others } = props;
               return <InnerSelect {...args.field} {...others} />;
             }}
           />
@@ -229,11 +229,11 @@ export type StandardSelector<ExtraProps extends object = object, Discriminator =
       name: TName;
     } & ExtraProps &
       PassthroughSelectProps
-  ): JSX.Element;
+  ): ReactElement;
   <
     // these are unused; they're still here only bc of a strange TS quirk. https://www.typescriptlang.org/play?#code/C4TwDgpgBAYgrgOwMYBVzQLxQN4CgoFQA8A4hAhAE4CWq6UEAHsOQCYDOUA9gEYBWEJMAB8ACgBuAQwA2cCOwBcUMhRp1IAbQC6ASiUqqtNJADc+QuYIB6K1ADKAd2rAkACyjBX0HhGlcHUNLUFJzBUJIIrNxwwB5cUOwQ0J7QAI5w1JQA1gB0llD5NsQGasbQTCyRnLwCQmJSshBKCHAAtj6UegnANAgA5iZQRX3khkge9BQQrNNQAGZclAlcrdCUEJLsXAj5EjJyzW0dXew9wQO4AL64uEjbp1CtIPDISi-qmFCikpR9OhjCPCEKDrYBwSgIKCIGZzYKzTbhBAgK5AA
     TFieldValues extends FieldValues = FieldValues,
-    TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+    _TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
   >(
     props: {
       options?: OptionsType<Discriminator> | undefined;
@@ -243,5 +243,5 @@ export type StandardSelector<ExtraProps extends object = object, Discriminator =
     } & Omit<ControllerRenderProps<any, any>, 'ref' | 'name' | 'value' | 'onBlur'> &
       ExtraProps &
       PassthroughSelectProps
-  ): JSX.Element;
+  ): ReactElement;
 };

@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetIntegrationProviderDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import {
   globalOwnershipAuthConfig,
@@ -12,7 +12,7 @@ import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePaths } from '../../routes/paths';
-import { useDeleteIntegrationProvider, QUERY_KEYS, useGetManyIntegrationApps } from '../../api-v2';
+import { useDeleteIntegrationProvider, QUERY_KEYS } from '../../api-v2';
 
 export const useOneIntegrationProviderGlobalActions = (
   integrationProvider: GetIntegrationProviderDto | undefined

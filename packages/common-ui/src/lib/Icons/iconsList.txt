@@ -29,7 +29,7 @@ LargeX, Has some or no privileges, BsXLg
 Copy, Copy text, BiCopy
 CheckCircle, Copy text success, BsCheckCircle
 InfoCircle, For tooltips, BsInfoCircle
-Pin, For pinning tenants, BsPin
+Pin, For pinning tenants, BsPin, BsPinFill
 
 // table icons
 CaretRightFill, Expand row, BsCaretRightFill

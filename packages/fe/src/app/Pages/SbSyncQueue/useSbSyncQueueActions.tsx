@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { SbSyncQueueDto } from '@edanalytics/models';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAuthorize } from '../../helpers';
 
 export const useSbSyncQueueActions = (sbSyncQueue: SbSyncQueueDto | undefined): ActionsType => {

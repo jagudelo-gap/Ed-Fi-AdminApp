@@ -1,5 +1,5 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import {
   teamEdfiTenantAuthConfig,
   useAuthorize,
@@ -22,7 +22,7 @@ export const useEdorgsActions = ({ ods }: { ods?: GetOdsDto }): ActionsType => {
         teamId,
         'team.sb-environment.edfi-tenant.ods:create-edorg'
       )
-    ) && sbEnvironment?.version === 'v2';
+    ) && (sbEnvironment?.version === 'v2' || sbEnvironment?.version === 'v3');
   return canPost && sbEnvironment.startingBlocks
     ? {
         Create: {

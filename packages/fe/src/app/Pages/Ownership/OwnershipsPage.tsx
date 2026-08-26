@@ -1,6 +1,6 @@
 import { PageTemplate, SbaaTableAllInOne } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { ownershipQueries, roleQueries, userQueries } from '../../api';
 import { getRelationDisplayName } from '../../helpers/getRelationDisplayName';
 import { RoleLink } from '../../routes';
@@ -12,7 +12,7 @@ export const OwnershipsPage = () => {
       teamId: params.asId,
     })
   );
-  const users = useQuery(userQueries.getAll({ teamId: params.asId }));
+  useQuery(userQueries.getAll({ teamId: params.asId }));
   const roles = useQuery(roleQueries.getAll({ teamId: params.asId }));
   return (
     <PageTemplate title="Ownerships">

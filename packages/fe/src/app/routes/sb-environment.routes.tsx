@@ -1,7 +1,7 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetSbEnvironmentDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { SbEnvironmentPage } from '../Pages/SbEnvironment/SbEnvironmentPage';
 import { SbEnvironmentsPage } from '../Pages/SbEnvironment/SbEnvironmentsPage';
 import { sbEnvironmentQueries } from '../api';

@@ -2,7 +2,7 @@ import { Spinner } from '@chakra-ui/react';
 import { GetEdfiTenantDto, GetSbEnvironmentDto } from '@edanalytics/models';
 import { useQuery } from '@tanstack/react-query';
 import pick from 'lodash/pick';
-import { ReactNode, createContext, useContext } from 'react';
+import { ReactElement, ReactNode, createContext, useContext } from 'react';
 import { edfiTenantQueries, sbEnvironmentQueries } from '../api';
 
 const NavContext = createContext<{
@@ -195,7 +195,7 @@ export const EdfiTenantNavContextLoader = ({
 }: {
   children?: ReactNode;
   fallback?: ReactNode;
-}): JSX.Element => {
+}): ReactElement => {
   const context = useNavContext();
 
   if (context.edfiTenantId !== undefined && context.edfiTenant === undefined) {
@@ -225,7 +225,7 @@ export const NavContextLoader = ({
 }: {
   children?: ReactNode;
   fallback?: ReactNode;
-}): JSX.Element => {
+}): ReactElement => {
   const context = useNavContext();
   if (
     (context.sbEnvironmentId !== undefined && context.sbEnvironment === undefined) ||
@@ -237,7 +237,7 @@ export const NavContextLoader = ({
   }
 };
 
-export const withLoader = <T extends object>(Component: (props: T) => JSX.Element) => {
+export const withLoader = <T extends object>(Component: (props: T) => ReactElement) => {
   return (props: T) => {
     return (
       <NavContextLoader fallback={null}>

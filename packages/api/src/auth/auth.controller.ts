@@ -9,7 +9,7 @@ import {
   toGetTeamDto,
   isCachedBySbEnvironment,
 } from '@edanalytics/models';
-import { Team, Oidc } from '@edanalytics/models-server';
+import { Team, User } from '@edanalytics/models-server';
 import {
   BadRequestException,
   Controller,
@@ -36,8 +36,14 @@ import { Authorize, NoAuthorization } from './authorization';
 import { Public } from './authorization/public.decorator';
 import { AuthCache } from './helpers/inject-auth-cache';
 import { ReqUser } from './helpers/user.decorator';
-import { NO_ROLE, USER_NOT_FOUND } from './login/oidc.strategy';
+import { NO_ROLE, OidcLoginInfo, USER_NOT_FOUND } from './login/oidc.strategy';
+import { OidcProviderRegistry } from './login/oidc-provider.registry';
 import { AuthService } from './auth.service';
+
+export const LOCAL_ONLY_LOGOUT_MESSAGE =
+  "You've been signed out of Admin App. You may still be signed in through your organization's sign-in provider. To fully sign out, also sign out of that account.";
+
+export const SIGNED_OUT_MESSAGE = "You've been signed out of Admin App.";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -45,9 +51,8 @@ export class AuthController {
   constructor(
     @InjectRepository(Team)
     private readonly teamsRepository: Repository<Team>,
-    @InjectRepository(Oidc)
-    private readonly oidcRepository: Repository<Oidc>,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly oidcProviderRegistry: OidcProviderRegistry
   ) {}
 
   throwOnBearerToken({ request, route }: { request: Request; route: string }) {
@@ -96,43 +101,74 @@ export class AuthController {
       const state = JSON.parse(request.query.state as string);
       // Validate redirect URL again in callback for extra security
       redirect = this.validateRedirectUrl(state.redirect);
-    } catch (error) {
+    } catch (_error) {
       // Use default redirect
     }
-    passport.authenticate(`oidc-${oidcId}`, {
-      successRedirect: `${config.FE_URL}${redirect}`,
-      failureRedirect: `${config.FE_URL}/unauthenticated`,
-    })(request, response, (error: Error) => {
-      Logger.error(error);
-
-      if (error.message === USER_NOT_FOUND) {
-        response.redirect(
-          `${config.FE_URL}/unauthenticated?msg=Oops, it looks like your user hasn't been created yet. We'll let you know when you can log in.`
-        );
-      } else if (error.message === NO_ROLE) {
-        response.redirect(
-          `${config.FE_URL}/unauthenticated?msg=Your login worked, but it looks like your setup isn't quite complete. We'll let you know when everything's ready.`
-        );
-      } else if (
-        error.message?.startsWith('did not find expected authorization request details in session')
-      ) {
-        response.redirect(
-          `${config.FE_URL}/unauthenticated?msg=Login failed. There may be an issue, but please try again.`
-        );
-      } else if (error.message?.startsWith('invalid_grant (Code not valid)')) {
-        response.redirect(
-          `${config.FE_URL}/unauthenticated?msg=It looks like there was a hiccup during login. Please try again.`
-        );
-      } else if (error.message?.includes('Database connection error')) {
-        response.redirect(
-          `${config.FE_URL}/unauthenticated?msg=The system is temporarily unavailable. Please try again in a few moments.`
-        );
-      } else {
-        response.redirect(
-          `${config.FE_URL}/unauthenticated?msg=It looks like your login was not successful. Please try again and contact us if the issue persists.`
-        );
+    passport.authenticate(
+      `oidc-${oidcId}`,
+      (error: Error | null, user: User | false, info?: OidcLoginInfo) => {
+        if (error) {
+          return this.redirectLoginFailure(error, response);
+        }
+        if (!user) {
+          return response.redirect(`${config.FE_URL}/unauthenticated`);
+        }
+        request.logIn(user, (loginError: Error | null) => {
+          if (loginError) {
+            return this.redirectLoginFailure(loginError, response);
+          }
+          // Track which provider the user authenticated with, and keep the
+          // id_token for use as id_token_hint during RP-Initiated Logout.
+          // Must happen after logIn, which regenerates the session.
+          request.session.oidcId = Number(oidcId);
+          request.session.idToken = info?.idToken;
+          request.session.save((saveError: Error | null) => {
+            if (saveError) {
+              // The provider/id_token failed to persist: a later logout could
+              // not do a provider-aware IdP logout. Fail the login instead of
+              // redirecting as if it succeeded.
+              Logger.error(
+                `Failed to persist session after login for provider ${oidcId}: ${saveError}`
+              );
+              return this.redirectLoginFailure(saveError, response);
+            }
+            return response.redirect(`${config.FE_URL}${redirect}`);
+          });
+        });
       }
-    });
+    )(request, response, (error: Error) => this.redirectLoginFailure(error, response));
+  }
+
+  private redirectLoginFailure(error: Error, response: Response) {
+    Logger.error(error);
+
+    if (error.message === USER_NOT_FOUND) {
+      response.redirect(
+        `${config.FE_URL}/unauthenticated?msg=Oops, it looks like your user hasn't been created yet. We'll let you know when you can log in.`
+      );
+    } else if (error.message === NO_ROLE) {
+      response.redirect(
+        `${config.FE_URL}/unauthenticated?msg=Your login worked, but it looks like your setup isn't quite complete. We'll let you know when everything's ready.`
+      );
+    } else if (
+      error.message?.startsWith('did not find expected authorization request details in session')
+    ) {
+      response.redirect(
+        `${config.FE_URL}/unauthenticated?msg=Login failed. There may be an issue, but please try again.`
+      );
+    } else if (error.message?.startsWith('invalid_grant (Code not valid)')) {
+      response.redirect(
+        `${config.FE_URL}/unauthenticated?msg=It looks like there was a hiccup during login. Please try again.`
+      );
+    } else if (error.message?.includes('Database connection error')) {
+      response.redirect(
+        `${config.FE_URL}/unauthenticated?msg=The system is temporarily unavailable. Please try again in a few moments.`
+      );
+    } else {
+      response.redirect(
+        `${config.FE_URL}/unauthenticated?msg=It looks like your login was not successful. Please try again and contact us if the issue persists.`
+      );
+    }
   }
 
   @Get('me')
@@ -248,10 +284,10 @@ export class AuthController {
   async logout(@Req() request: Request, @Res() response: Response) {
     this.throwOnBearerToken({ request, route: 'logout' });
 
-    try {
-      // Get the OIDC providers to construct logout URL
-      const oidcProviders = await this.oidcRepository.find();
+    // Read the login provider before destroying the session
+    const { oidcId, idToken } = request.session;
 
+    try {
       // Destroy the local session first
       await new Promise<void>((resolve, reject) => {
         request.session.destroy((err) => {
@@ -264,68 +300,35 @@ export class AuthController {
         });
       });
 
-      if (oidcProviders.length > 0) {
-        // Try to find provider matching the configured client ID (case-insensitive)
-        let oidcProvider = oidcProviders[0]; // Default fallback to first provider
+      // Sessions created before provider tracking carry no oidcId; fall back
+      // to the only registered provider when unambiguous
+      const loginOidcId = oidcId ?? this.oidcProviderRegistry.getSoleOidcId();
 
-        if (config.SAMPLE_OIDC_CONFIG?.clientId) {
-          const clientId = config.SAMPLE_OIDC_CONFIG.clientId.toLowerCase();
-          const matchingProvider = oidcProviders.find(provider =>
-            provider.clientId.toLowerCase() === clientId
-          );
-          if (matchingProvider) {
-            oidcProvider = matchingProvider;
-          } else {
-            Logger.warn(`No OIDC provider found matching configured clientId: ${config.SAMPLE_OIDC_CONFIG.clientId}, using first available`);
-          }
-        }
-
-        const logoutUrl = this.constructKeycloakLogoutUrl(oidcProvider.issuer, oidcProvider.clientId);
-
-        if (logoutUrl) {
-          return response.redirect(logoutUrl);
-        }
+      if (loginOidcId === undefined) {
+        Logger.warn('No login provider tracked on session, skipping IdP logout');
+        // Still confirm the local sign-out instead of dropping the user on the
+        // app root with no explanation that their session ended.
+        return response.redirect(
+          `${config.FE_URL}/unauthenticated?msg=${encodeURIComponent(SIGNED_OUT_MESSAGE)}`
+        );
       }
 
-      // Fallback: redirect to base URL if no OIDC provider or logout URL construction failed
-      Logger.warn('No OIDC logout URL available, redirecting to frontend');
-      return response.redirect(config.FE_URL);
+      const endSessionUrl = this.oidcProviderRegistry.getEndSessionUrl(loginOidcId, idToken);
 
+      if (endSessionUrl) {
+        // Full RP-Initiated Logout against the provider the user logged in with
+        return response.redirect(endSessionUrl);
+      }
+
+      // The provider does not support RP-Initiated Logout (no end_session_endpoint,
+      // e.g. Google): local session is destroyed but the IdP session persists
+      return response.redirect(
+        `${config.FE_URL}/unauthenticated?msg=${encodeURIComponent(LOCAL_ONLY_LOGOUT_MESSAGE)}`
+      );
     } catch (error) {
       Logger.error('Error during logout process:', error);
       // Even if there's an error, still redirect to base URL
       return response.redirect(config.FE_URL);
-    }
-  }
-
-  // Constructs a Keycloak logout URL from the OIDC issuer
-  private constructKeycloakLogoutUrl(issuer: string, clientId?: string): string | null {
-    try {
-      if (!issuer || typeof issuer !== 'string') {
-        Logger.warn('Invalid issuer provided for logout URL construction');
-        return null;
-      }
-
-      // Remove trailing slash if present
-      const cleanIssuer = issuer.replace(/\/$/, '');
-      // Keycloak OIDC logout endpoint is always: {issuer}/protocol/openid-connect/logout
-      const logoutEndpoint = `${cleanIssuer}/protocol/openid-connect/logout`;
-
-      // Always redirect to our post-logout endpoint which forwards to frontend
-      const redirectUrl = `${config.MY_URL}/api/auth/post-logout`;
-      const returnUrl = encodeURIComponent(redirectUrl);
-
-      // Add client_id and post_logout_redirect_uri to bypass confirmation page
-      let fullLogoutUrl = `${logoutEndpoint}?post_logout_redirect_uri=${returnUrl}`;
-
-      if (clientId) {
-        fullLogoutUrl += `&client_id=${encodeURIComponent(clientId)}`;
-      }
-
-      return fullLogoutUrl;
-    } catch (error) {
-      Logger.error('Failed to construct Keycloak logout URL:', error);
-      return null;
     }
   }
 
@@ -355,7 +358,7 @@ export class AuthController {
       if (allowedHosts.includes(baseUrl)) {
         return redirect;
       }
-    } catch (error) {
+    } catch (_error) {
       // Invalid URL format
     }
 

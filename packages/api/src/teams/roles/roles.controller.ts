@@ -15,7 +15,7 @@ import { RolesService } from './roles.service';
 import { ApiTags } from '@nestjs/swagger';
 import { Role, addUserCreating, addUserModifying } from '@edanalytics/models-server';
 import { Authorize } from '../../auth/authorization';
-import { CustomHttpException, throwNotFound } from '../../utils';
+import { CustomHttpException } from '../../utils';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

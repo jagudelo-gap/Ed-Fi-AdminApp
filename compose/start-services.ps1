@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# Licensed to the Ed-Fi Alliance under one or more agreements.
+# The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
+# See the LICENSE and NOTICES files in the project root for more information.
+
 <#
 .SYNOPSIS
     Starts the Docker Compose services.
@@ -30,13 +35,18 @@ if (-not $networkExists) {
     Write-Host "Creating edfiadminapp-network..." -ForegroundColor Yellow
     docker network create edfiadminapp-network --driver bridge
 }
+
+$edfiServicesFile = Join-Path $PSScriptRoot "edfi-services.yml"
+$nginxComposeFile = Join-Path $PSScriptRoot "nginx-compose.yml"
+$adminAppServicesFile = Join-Path $PSScriptRoot "adminapp-services.yml"
+
 $files = @(
     "-f",
-    "edfi-services.yml",
+    $edfiServicesFile,
     "-f",
-    "nginx-compose.yml",
+    $nginxComposeFile,
     "-f",
-    "adminapp-services.yml"
+    $adminAppServicesFile
 )
 
 $composeProfile = "postgresql"
@@ -45,5 +55,19 @@ if ($MSSQL) {
 }
 
 Write-Host "Starting Docker Compose services with profile $composeProfile, running Admin App..." -ForegroundColor Green
-docker compose $files --env-file ".env" --profile $composeProfile --profile adminapp up -d $(if ($Rebuild) { "--build" })
+$EnvFile = Join-Path $PSScriptRoot ".env"
+
+# The -MSSQL switch only selects the SQL Server container profile. The API still
+# reads DB_ENGINE and DB_SECRET_VALUE from .env, so warn when they do not match the
+# selected profile -- otherwise the API silently starts against the wrong database.
+$expectedEngine = if ($MSSQL) { "mssql" } else { "pgsql" }
+if (Test-Path $EnvFile) {
+    $engineLine = Select-String -Path $EnvFile -Pattern '^\s*DB_ENGINE\s*=\s*(\S+)' | Select-Object -First 1
+    $configuredEngine = if ($engineLine) { $engineLine.Matches.Groups[1].Value } else { "pgsql" }
+    if ($configuredEngine -ne $expectedEngine) {
+        Write-Warning "DB_ENGINE in .env is '$configuredEngine' but the selected profile expects '$expectedEngine'. Set DB_ENGINE=$expectedEngine and the matching DB_SECRET_VALUE in .env before starting."
+    }
+}
+
+docker compose $files --env-file $EnvFile --profile $composeProfile --profile adminapp up -d $(if ($Rebuild) { "--build" })
 Write-Host "Services started successfully!" -ForegroundColor Green

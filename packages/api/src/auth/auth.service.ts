@@ -540,7 +540,9 @@ export class AuthService {
         const buildDescendants = (edorg: Edorg) => {
           const descendants = descendantMap.get(edorg.id);
           edorg.children = descendants;
-          descendants && edorg.children.forEach((child) => buildDescendants(child));
+          if (descendants) {
+            edorg.children.forEach((child) => buildDescendants(child));
+          }
         };
         tree = edorg;
         buildDescendants(tree);
@@ -676,7 +678,7 @@ export class AuthService {
     let header: ProtectedHeaderParameters;
     try {
       header = jose.decodeProtectedHeader(token);
-    } catch (decodeError) {
+    } catch (_decodeError) {
       return {
         status: 'failure' as const,
         message: 'Invalid token', // decode error
@@ -707,7 +709,7 @@ export class AuthService {
       };
     } catch (verifyError) {
       // Provide specific error messages
-      let errorMessage = 'Invalid token';
+      let errorMessage: string;
 
       if (verifyError.code === 'ERR_JWT_EXPIRED') {
         errorMessage = 'Token has expired. Please obtain a new access token.';

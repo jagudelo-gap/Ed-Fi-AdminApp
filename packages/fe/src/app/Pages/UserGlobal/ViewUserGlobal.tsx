@@ -6,7 +6,7 @@ import {
   ContentSection,
 } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { roleQueries, userQueries } from '../../api';
 import { RoleGlobalLink } from '../../routes/role-global.routes';
 

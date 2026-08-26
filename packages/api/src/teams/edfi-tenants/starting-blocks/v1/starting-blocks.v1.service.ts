@@ -64,7 +64,7 @@ export class StartingBlocksServiceV1 {
 
     try {
       configPublic.odsApiMeta = await fetch(sbEnvironment.usableDomain).then((r) => r.json());
-    } catch (cantRetrieveMetaError) {
+    } catch (_cantRetrieveMetaError) {
       this.logger.warn('Failed to GET ODS API root URL at ' + sbEnvironment.usableDomain);
     }
 
@@ -127,10 +127,10 @@ export class StartingBlocksServiceV1 {
     try {
       const odss = (metaTenant.odss ?? []).map(
         (ods): SyncableOds => ({
+          id: ods.id ?? null,
+          name: ods.name ?? null,
           dbName: ods.dbname,
           edorgs: ods.edorgs,
-          id: null,
-          name: null,
         })
       );
       return await this.entityManager.transaction((em) =>

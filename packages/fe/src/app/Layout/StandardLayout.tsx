@@ -1,5 +1,5 @@
 import { Box, Flex, HStack, Text, VStack, Link } from '@chakra-ui/react';
-import { Outlet, useParams } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router';
 import { useMe } from '../api';
 import { NavContextProvider, useNavContext } from '../helpers';
 import { AppBar } from './AppBar';

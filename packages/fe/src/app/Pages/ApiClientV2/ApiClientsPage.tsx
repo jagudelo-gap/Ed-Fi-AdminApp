@@ -9,7 +9,7 @@ import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { NameCell } from './NameCell';
 import { useMultiApiClientsActions } from './useApiClientActions';
 import { apiClientQueriesV2 } from '../../api';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 export const ApiClientsPageV2 = () => {
   return (

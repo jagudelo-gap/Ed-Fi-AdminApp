@@ -125,6 +125,7 @@ export class ResourceClaimDto131 {
     return this.authStrategyOverridesForCRUD?.filter((v) => v !== null);
   }
 }
+const toResourceClaimDto131 = makeSerializer(ResourceClaimDto131);
 
 export class PostClaimsetDto {
   @Expose()
@@ -148,10 +149,12 @@ export class PostClaimsetDto {
 
   set resourceClaimsJson(value: string) {
     try {
-      this.resourceClaims = JSON.parse(value);
-    } catch (invalidJsonError) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.resourceClaims = undefined as any;
+      const parsed = JSON.parse(value);
+      this.resourceClaims = Array.isArray(parsed)
+        ? toResourceClaimDto131(parsed)
+        : (undefined as unknown as ResourceClaimDto131[]);
+    } catch {
+      this.resourceClaims = undefined as unknown as ResourceClaimDto131[];
     }
   }
 }
@@ -305,6 +308,11 @@ export const toApplicationYopassResponseDto = makeSerializer<
   Omit<ApplicationYopassResponseDto, 'id'>
 >(ApplicationYopassResponseDto);
 
+export const toApiClientYopassResponseDto = makeSerializer<
+  ApiClientYopassResponseDto,
+  Omit<ApiClientYopassResponseDto, 'id'>
+>(ApiClientYopassResponseDto);
+
 export class PutApplicationDto extends PostApplicationDto {
   @Expose()
   applicationId: number;
@@ -405,7 +413,11 @@ export interface EducationOrganizationDto {
 export interface OdsInstanceDto {
   id: number | null;
   name: string;
+  instanceManageId?: number | null;
   instanceType?: string;
+  status?: string | null;
+  databaseTemplate?: string | null;
+  databaseName?: string | null;
   edOrgs?: EducationOrganizationDto[];
 }
 

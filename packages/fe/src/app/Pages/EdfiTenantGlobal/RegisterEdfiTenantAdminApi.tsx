@@ -18,7 +18,7 @@ export const RegisterEdfiTenantAdminApi = (props: { edfiTenant: GetEdfiTenantDto
       { entity: props.edfiTenant, pathParams: {} },
       {
         onError: () => undefined,
-        onSuccess: (res) => {
+        onSuccess: (_res) => {
           popBanner({
             title: 'Admin API already connected.',
             type: 'Warning',
@@ -27,6 +27,12 @@ export const RegisterEdfiTenantAdminApi = (props: { edfiTenant: GetEdfiTenantDto
         },
       }
     );
+    // checkConnection, popBanner, props.edfiTenant, and sbEnvironment are
+    // intentionally omitted: this should only check the connection once on
+    // mount. checkConnection/popBanner are freshly created on every render
+    // (not memoized upstream), so including them would re-trigger the
+    // connection check (and possible duplicate banner) on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const { edfiTenant } = props;
 

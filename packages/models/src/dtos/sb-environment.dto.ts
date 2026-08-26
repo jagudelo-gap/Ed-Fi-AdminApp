@@ -63,9 +63,17 @@ export class GetSbEnvironmentDto
   }
 
   get version() {
-    return this.configPublic && 'version' in this.configPublic
-      ? this.configPublic.version
-      : undefined;
+    if (this.configPublic && 'version' in this.configPublic && this.configPublic.version) {
+      return this.configPublic.version;
+    }
+    // Fallback for environments created before the version field was added:
+    // derive the version from the shape of the values object.
+    const values =
+      this.configPublic && 'values' in this.configPublic ? this.configPublic.values : undefined;
+    if (values) {
+      return 'meta' in values ? 'v2' : 'v1';
+    }
+    return undefined;
   }
 
   get domain() {
@@ -158,8 +166,8 @@ export class PostSbEnvironmentDto
   @Expose()
   @IsOptional()
   @MaxLength(2)
-  @IsIn(['v1', 'v2'])
-  version?: 'v1' | 'v2';
+  @IsIn(['v1', 'v2', 'v3'])
+  version?: 'v1' | 'v2' | 'v3';
 
   @Expose()
   @IsOptional()

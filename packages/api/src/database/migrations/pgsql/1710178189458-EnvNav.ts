@@ -1,4 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import { hasPgbossArchive } from './pgboss-compat';
 
 export class EnvNav1710178189458 implements MigrationInterface {
   name = 'EnvNav1710178189458';
@@ -9,7 +10,12 @@ export class EnvNav1710178189458 implements MigrationInterface {
       ['MATERIALIZED_VIEW', 'sb_sync_queue', 'public']
     );
     await queryRunner.query(`DROP MATERIALIZED VIEW "sb_sync_queue"`);
-    await queryRunner.query(`CREATE MATERIALIZED VIEW "sb_sync_queue" AS with job as (select id, name, data, state, createdon, completedon, output
+
+    const archiveExists = await hasPgbossArchive(queryRunner);
+
+    if (archiveExists) {
+      // Legacy branch: pg-boss ≤v9 camelCase schema with pgboss.archive table
+      await queryRunner.query(`CREATE MATERIALIZED VIEW "sb_sync_queue" AS with job as (select id, name, data, state, createdon, completedon, output
     from pgboss.job
     where name in ('sbe-sync', 'edfi-tenant-sync')
     union
@@ -31,15 +37,46 @@ output,
 from job
 left join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id
 left join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id`);
-    await queryRunner.query(
-      `INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)`,
-      [
-        'public',
-        'MATERIALIZED_VIEW',
-        'sb_sync_queue',
-        'with job as (select id, name, data, state, createdon, completedon, output\n    from pgboss.job\n    where name in (\'sbe-sync\', \'edfi-tenant-sync\')\n    union\n    select id, name, data, state, createdon, completedon, output\n    from pgboss.archive\n    where name in (\'sbe-sync\', \'edfi-tenant-sync\'))\nselect job."id",\ncase when job."name" = \'sbe-sync\' then \'SbEnvironment\' else \'EdfiTenant\' end     "type",\ncoalesce(sb_environment."name", edfi_tenant."name", \'resource no longer exists\') "name",\ncoalesce(sb_environment."id", edfi_tenant."sbEnvironmentId")                     "sbEnvironmentId",\nedfi_tenant."id"                                                                 "edfiTenantId",\n"data"::text                                                                     "dataText",\ndata,\nstate,\ncreatedon,\ncompletedon,\noutput,\n(job.output -> \'hasChanges\')::bool                                               "hasChanges"\nfrom job\nleft join public.sb_environment on (job.data -> \'sbEnvironmentId\')::int = sb_environment.id\nleft join public.edfi_tenant on (job.data -> \'edfiTenantId\')::int = edfi_tenant.id',
-      ]
-    );
+      await queryRunner.query(
+        `INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)`,
+        [
+          'public',
+          'MATERIALIZED_VIEW',
+          'sb_sync_queue',
+          'with job as (select id, name, data, state, createdon, completedon, output\n    from pgboss.job\n    where name in (\'sbe-sync\', \'edfi-tenant-sync\')\n    union\n    select id, name, data, state, createdon, completedon, output\n    from pgboss.archive\n    where name in (\'sbe-sync\', \'edfi-tenant-sync\'))\nselect job."id",\ncase when job."name" = \'sbe-sync\' then \'SbEnvironment\' else \'EdfiTenant\' end     "type",\ncoalesce(sb_environment."name", edfi_tenant."name", \'resource no longer exists\') "name",\ncoalesce(sb_environment."id", edfi_tenant."sbEnvironmentId")                     "sbEnvironmentId",\nedfi_tenant."id"                                                                 "edfiTenantId",\n"data"::text                                                                     "dataText",\ndata,\nstate,\ncreatedon,\ncompletedon,\noutput,\n(job.output -> \'hasChanges\')::bool                                               "hasChanges"\nfrom job\nleft join public.sb_environment on (job.data -> \'sbEnvironmentId\')::int = sb_environment.id\nleft join public.edfi_tenant on (job.data -> \'edfiTenantId\')::int = edfi_tenant.id',
+        ]
+      );
+    } else {
+      // v12 branch: pg-boss v10+ snake_case schema — pgboss.archive no longer exists
+      await queryRunner.query(`CREATE MATERIALIZED VIEW "sb_sync_queue" AS with job as (select id, name, data, state, created_on as createdon, completed_on as completedon, output
+    from pgboss.job
+    where name in ('sbe-sync', 'edfi-tenant-sync'))
+select job."id",
+case when job."name" = 'sbe-sync' then 'SbEnvironment' else 'EdfiTenant' end     "type",
+coalesce(sb_environment."name", edfi_tenant."name", 'resource no longer exists') "name",
+coalesce(sb_environment."id", edfi_tenant."sbEnvironmentId")                     "sbEnvironmentId",
+edfi_tenant."id"                                                                 "edfiTenantId",
+"data"::text                                                                     "dataText",
+data,
+state,
+createdon,
+completedon,
+output,
+(job.output -> 'hasChanges')::bool                                               "hasChanges"
+from job
+left join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id
+left join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id`);
+      await queryRunner.query(
+        `INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)`,
+        [
+          'public',
+          'MATERIALIZED_VIEW',
+          'sb_sync_queue',
+          'with job as (select id, name, data, state, created_on as createdon, completed_on as completedon, output\n    from pgboss.job\n    where name in (\'sbe-sync\', \'edfi-tenant-sync\'))\nselect job."id",\ncase when job."name" = \'sbe-sync\' then \'SbEnvironment\' else \'EdfiTenant\' end     "type",\ncoalesce(sb_environment."name", edfi_tenant."name", \'resource no longer exists\') "name",\ncoalesce(sb_environment."id", edfi_tenant."sbEnvironmentId")                     "sbEnvironmentId",\nedfi_tenant."id"                                                                 "edfiTenantId",\n"data"::text                                                                     "dataText",\ndata,\nstate,\ncreatedon,\ncompletedon,\noutput,\n(job.output -> \'hasChanges\')::bool                                               "hasChanges"\nfrom job\nleft join public.sb_environment on (job.data -> \'sbEnvironmentId\')::int = sb_environment.id\nleft join public.edfi_tenant on (job.data -> \'edfiTenantId\')::int = edfi_tenant.id',
+        ]
+      );
+    }
+
     await queryRunner.query(`CREATE VIEW "env_nav" AS 
   select "name" "sbEnvironmentName", "id" "sbEnvironmentId", null "edfiTenantName", null "edfiTenantId"
 from sb_environment
@@ -72,7 +109,12 @@ from sb_environment
       ['MATERIALIZED_VIEW', 'sb_sync_queue', 'public']
     );
     await queryRunner.query(`DROP MATERIALIZED VIEW "sb_sync_queue"`);
-    await queryRunner.query(`CREATE MATERIALIZED VIEW "sb_sync_queue" AS with job as (select id, name, data, state, createdon, completedon, output
+
+    const archiveExists = await hasPgbossArchive(queryRunner);
+
+    if (archiveExists) {
+      // Legacy branch: pg-boss ≤v9 camelCase schema with pgboss.archive table
+      await queryRunner.query(`CREATE MATERIALIZED VIEW "sb_sync_queue" AS with job as (select id, name, data, state, createdon, completedon, output
     from pgboss.job
     where name in ('sbe-sync', 'edfi-tenant-sync')
     union
@@ -82,6 +124,9 @@ from sb_environment
 select job."id",
 case when job."name" = 'sbe-sync' then 'SbEnvironment' else 'EdfiTenant' end     "type",
 coalesce(sb_environment."name", edfi_tenant."name", 'resource no longer exists') "name",
+coalesce(sb_environment."id", edfi_tenant."sbEnvironmentId")                     "sbEnvironmentId",
+edfi_tenant."id"                                                                 "edfiTenantId",
+"data"::text                                                                     "dataText",
 data,
 state,
 createdon,
@@ -91,14 +136,44 @@ output,
 from job
 left join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id
 left join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id`);
-    await queryRunner.query(
-      `INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)`,
-      [
-        'public',
-        'MATERIALIZED_VIEW',
-        'sb_sync_queue',
-        "with job as (select id, name, data, state, createdon, completedon, output\n    from pgboss.job\n    where name in ('sbe-sync', 'edfi-tenant-sync')\n    union\n    select id, name, data, state, createdon, completedon, output\n    from pgboss.archive\n    where name in ('sbe-sync', 'edfi-tenant-sync'))\nselect job.\"id\",\ncase when job.\"name\" = 'sbe-sync' then 'SbEnvironment' else 'EdfiTenant' end     \"type\",\ncoalesce(sb_environment.\"name\", edfi_tenant.\"name\", 'resource no longer exists') \"name\",\ndata,\nstate,\ncreatedon,\ncompletedon,\noutput,\n(job.output -> 'hasChanges')::bool                                               \"hasChanges\"\nfrom job\nleft join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id\nleft join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id",
-      ]
-    );
+      await queryRunner.query(
+        `INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)`,
+        [
+          'public',
+          'MATERIALIZED_VIEW',
+          'sb_sync_queue',
+          "with job as (select id, name, data, state, createdon, completedon, output\n    from pgboss.job\n    where name in ('sbe-sync', 'edfi-tenant-sync')\n    union\n    select id, name, data, state, createdon, completedon, output\n    from pgboss.archive\n    where name in ('sbe-sync', 'edfi-tenant-sync'))\nselect job.\"id\",\ncase when job.\"name\" = 'sbe-sync' then 'SbEnvironment' else 'EdfiTenant' end     \"type\",\ncoalesce(sb_environment.\"name\", edfi_tenant.\"name\", 'resource no longer exists') \"name\",\ncoalesce(sb_environment.\"id\", edfi_tenant.\"sbEnvironmentId\")                     \"sbEnvironmentId\",\nedfi_tenant.\"id\"                                                                 \"edfiTenantId\",\n\"data\"::text                                                                     \"dataText\",\ndata,\nstate,\ncreatedon,\ncompletedon,\noutput,\n(job.output -> 'hasChanges')::bool                                               \"hasChanges\"\nfrom job\nleft join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id\nleft join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id",
+        ]
+      );
+    } else {
+      // v12 branch: pg-boss v10+ snake_case schema — pgboss.archive no longer exists
+      await queryRunner.query(`CREATE MATERIALIZED VIEW "sb_sync_queue" AS with job as (select id, name, data, state, created_on as createdon, completed_on as completedon, output
+    from pgboss.job
+    where name in ('sbe-sync', 'edfi-tenant-sync'))
+select job."id",
+case when job."name" = 'sbe-sync' then 'SbEnvironment' else 'EdfiTenant' end     "type",
+coalesce(sb_environment."name", edfi_tenant."name", 'resource no longer exists') "name",
+coalesce(sb_environment."id", edfi_tenant."sbEnvironmentId")                     "sbEnvironmentId",
+edfi_tenant."id"                                                                 "edfiTenantId",
+"data"::text                                                                     "dataText",
+data,
+state,
+createdon,
+completedon,
+output,
+(job.output -> 'hasChanges')::bool                                               "hasChanges"
+from job
+left join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id
+left join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id`);
+      await queryRunner.query(
+        `INSERT INTO "typeorm_metadata"("database", "schema", "table", "type", "name", "value") VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)`,
+        [
+          'public',
+          'MATERIALIZED_VIEW',
+          'sb_sync_queue',
+          "with job as (select id, name, data, state, created_on as createdon, completed_on as completedon, output\n    from pgboss.job\n    where name in ('sbe-sync', 'edfi-tenant-sync'))\nselect job.\"id\",\ncase when job.\"name\" = 'sbe-sync' then 'SbEnvironment' else 'EdfiTenant' end     \"type\",\ncoalesce(sb_environment.\"name\", edfi_tenant.\"name\", 'resource no longer exists') \"name\",\ncoalesce(sb_environment.\"id\", edfi_tenant.\"sbEnvironmentId\")                     \"sbEnvironmentId\",\nedfi_tenant.\"id\"                                                                 \"edfiTenantId\",\n\"data\"::text                                                                     \"dataText\",\ndata,\nstate,\ncreatedon,\ncompletedon,\noutput,\n(job.output -> 'hasChanges')::bool                                               \"hasChanges\"\nfrom job\nleft join public.sb_environment on (job.data -> 'sbEnvironmentId')::int = sb_environment.id\nleft join public.edfi_tenant on (job.data -> 'edfiTenantId')::int = edfi_tenant.id",
+        ]
+      );
+    }
   }
 }

@@ -10,6 +10,7 @@ declare global {
       VITE_CONTACT?: string;
       VITE_APPLICATION_NAME?: string;
       VITE_IDP_ACCOUNT_URL?: string;
+      VITE_SHOW_REQUEST_CERTIFICATION?: string;
     };
   }
 }

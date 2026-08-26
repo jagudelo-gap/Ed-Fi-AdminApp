@@ -4,7 +4,7 @@ import { IntegrationProvider } from '@edanalytics/models-server';
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { throwNotFound } from '../utils';
 import { Authorize } from '../auth/authorization';
 import { InjectFilter } from '../auth/helpers/inject-filter';

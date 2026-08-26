@@ -22,7 +22,7 @@ import { StatusResponse, isExplicitStatusResponse } from '@edanalytics/utils';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import { claimsetQueriesV1 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 
@@ -80,13 +80,13 @@ export const ImportClaimsetsPage = () => {
                   } else {
                     setError('Did not find array of claimsets in file');
                   }
-                } catch (ParsingError) {
+                } catch {
                   setError('Did not find expected JSON structure in file');
                 }
-              } catch (JSONParseError) {
+              } catch {
                 setError('Invalid JSON file');
               }
-            } catch (NoFileError) {
+            } catch {
               setError('No file selected');
             }
             setClaimsets([]);

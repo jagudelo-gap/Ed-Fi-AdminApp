@@ -13,7 +13,7 @@ export const useMe = () => {
 
     queryFn: () => {
       return axios
-        .get(`${baseUrl}/auth/me`, { withCredentials: true })
+        .get<{ data: unknown }>(`${baseUrl}/auth/me`, { withCredentials: true })
         .then((res) => {
           return plainToInstance(GetSessionDataDto, res.data);
         })
@@ -44,7 +44,7 @@ export const usePutMe = (callback?: () => void) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['me'] });
-      callback && callback();
+      callback?.();
     },
   });
 };

@@ -1,8 +1,8 @@
-import { useLocation, useMatches } from 'react-router-dom';
+import { useLocation, useMatches } from 'react-router';
 import { NavButton } from './NavButton';
 import { Icons } from '@edanalytics/common-ui';
 
-export const UniversalNavLinks = (props: object) => {
+export const UniversalNavLinks = (_props: object) => {
   const currentMatches = useMatches();
   const path = useLocation().pathname;
   return (

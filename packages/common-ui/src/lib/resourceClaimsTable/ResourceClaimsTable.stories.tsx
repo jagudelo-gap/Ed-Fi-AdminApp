@@ -1,4 +1,4 @@
-import { Meta } from '@storybook/react';
+import { Meta } from '@storybook/react-vite';
 import { ResourceClaimsTable } from '.';
 import { GetClaimsetDto } from '@edanalytics/models';
 import { DeepPartial } from '@chakra-ui/react';

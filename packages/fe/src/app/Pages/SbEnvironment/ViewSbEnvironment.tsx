@@ -7,7 +7,7 @@ import {
 import { GetSbEnvironmentDto } from '@edanalytics/models';
 import { AuthorizeComponent, useTeamSbEnvironmentNavContext } from '../../helpers';
 import { Link } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 
 export const ViewSbEnvironment = ({ sbEnvironment }: { sbEnvironment: GetSbEnvironmentDto }) => {
   const { teamId, sbEnvironmentId } = useTeamSbEnvironmentNavContext();

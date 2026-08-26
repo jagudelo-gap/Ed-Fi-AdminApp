@@ -18,7 +18,7 @@ import {
   TableState,
 } from '@tanstack/react-table';
 import React, { createContext, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import {
   fuzzyFilter,
   getColumnFilterParam,

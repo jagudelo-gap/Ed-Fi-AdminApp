@@ -11,7 +11,7 @@ import { GetRoleDto, PutRoleDto } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { roleQueries } from '../../api';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';

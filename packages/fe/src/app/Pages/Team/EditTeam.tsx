@@ -15,7 +15,7 @@ import { usePopBanner } from '../../Layout/FeedbackBanner';
 
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { teamQueries } from '../../api';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 

@@ -1,0 +1,17 @@
+meta {
+  name: app/healthcheck - OK (200)
+  type: http
+  seq: 1
+  tags: App
+}
+
+get {
+  url: {{BASE_URL}}/healthcheck
+}
+
+tests {
+  test("app/healthcheck - OK (200)", function() {
+    const status = res.getStatus();
+    expect(status).to.equal(200);
+  });
+}

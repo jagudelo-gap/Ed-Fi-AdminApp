@@ -14,7 +14,7 @@ import { AddEdorgDtoV2, ISbEnvironmentConfigPublicV2 } from '@edanalytics/models
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { edorgQueries } from '../../api';
 import {

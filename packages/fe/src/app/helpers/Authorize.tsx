@@ -1,14 +1,13 @@
 import {
   BasePrivilege,
   PrivilegeCode,
-  SpecificIds,
   TeamBasePrivilege,
   TeamEdfiTenantPrivilege,
   TeamSbEnvironmentPrivilege,
 } from '@edanalytics/models';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { ReactElement } from 'react';
-import { FeAuthCache, authCachArraysToSets, privilegeSelector, usePrivilegeCache } from '../api';
+import { FeAuthCache, authCachArraysToSets, usePrivilegeCache } from '../api';
 
 export type AuthorizeConfig<
   PrivilegeType extends
@@ -47,7 +46,7 @@ export const authorize = <PrivilegeType extends PrivilegeCode>(props: {
     : [props.config];
   let isAuthorized =
     props.config !== undefined && (!Array.isArray(props.config) || props.config.length > 0);
-  configArray.forEach((config, i) => {
+  configArray.forEach((config, _i) => {
     const thisPrivilegeCache = props.queryClient.getQueryData<FeAuthCache>(
       authCacheKey({
         teamId: 'teamId' in config.subject ? config.subject.teamId : undefined,

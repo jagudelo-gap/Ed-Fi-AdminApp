@@ -1,7 +1,7 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetClaimsetDto } from '@edanalytics/models';
 import { RowSelectionState } from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { claimsetQueriesV1, API_URL } from '../../api';
 import { claimsetAuthConfig, useAuthorize, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
@@ -105,10 +105,9 @@ export const useManyClaimsetActions = ({
 }: {
   selectionState: RowSelectionState;
 }): ActionsType => {
-  const { teamId, edfiTenant, sbEnvironment } = useTeamEdfiTenantNavContextLoaded();
+  const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
 
   const navigate = useNavigate();
-  const toCreate = `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets/create`;
   const toImport = `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/claimsets/import`;
   const canCreate = useAuthorize(
     claimsetAuthConfig(edfiTenant.id, teamId, 'team.sb-environment.edfi-tenant.claimset:create')

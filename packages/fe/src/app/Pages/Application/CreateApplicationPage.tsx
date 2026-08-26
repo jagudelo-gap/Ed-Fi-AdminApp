@@ -14,7 +14,7 @@ import { PostApplicationForm } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { applicationQueriesV1 } from '../../api';
 import {
@@ -58,7 +58,7 @@ export const CreateApplicationPage = () => {
             .mutateAsync(
               { entity: data },
               {
-                onSuccess(data, variables, context) {
+                onSuccess(data, _variables, _context) {
                   navigate(
                     `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenant.id}/applications/${data.applicationId}`,
                     {

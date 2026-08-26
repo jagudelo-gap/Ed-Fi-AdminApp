@@ -1,7 +1,7 @@
 import { StyleProps, Tooltip, chakra, forwardRef } from '@chakra-ui/react';
 import { DateValue } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { sbEnvironmentQueries } from '../../api';
 import { useTeamNavContext } from '../../helpers';
 
@@ -29,7 +29,7 @@ export const SbEnvironmentSyncDateOverlay = (props: { left?: boolean }) => {
 };
 
 export const SbEnvironmentSyncDateValue = forwardRef<StyleProps, 'span'>((props, ref) => {
-  const { teamId, asId } = useTeamNavContext();
+  const { teamId } = useTeamNavContext();
   const params = useParams() as {
     sbEnvironmentId: string;
   };

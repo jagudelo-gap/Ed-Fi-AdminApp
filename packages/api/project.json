@@ -11,7 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/packages/migration/pgsql",
+        "outputPath": "dist/packages/migration",
         "main": "packages/api/src/database/migrations.datasource.ts",
         "tsConfig": "packages/api/tsconfig.app.json",
         "webpackConfig": "packages/api/webpack.config.js"

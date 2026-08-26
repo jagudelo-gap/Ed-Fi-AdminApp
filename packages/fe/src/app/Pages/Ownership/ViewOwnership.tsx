@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Attribute, AttributesGrid, ContentSection } from '@edanalytics/common-ui';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { ownershipQueries } from '../../api';
 
 export const ViewOwnership = () => {

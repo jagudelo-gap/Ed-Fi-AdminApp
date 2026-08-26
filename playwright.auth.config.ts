@@ -1,0 +1,78 @@
+// SPDX-License-Identifier: Apache-2.0
+// Licensed to the Ed-Fi Alliance under one or more agreements.
+// The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
+// See the LICENSE and NOTICES files in the project root for more information.
+
+import {
+  defineConfig, devices
+} from '@playwright/test'
+import { defineBddConfig } from 'playwright-bdd'
+
+// Register BDD settings so `bddgen --config playwright.auth.config.ts` also works.
+defineBddConfig({
+  features: 'tests/e2e/**/*.feature',
+  steps: 'tests/e2e/**/*.steps.ts',
+  featuresRoot: 'tests/e2e',
+  outputDir: 'tests/e2e/.features-gen',
+})
+
+/**
+ * Read environment variables from file.
+ * https://github.com/motdotla/dotenv
+ */
+// require('dotenv').config();
+
+/**
+ * See https://playwright.dev/docs/test-configuration.
+ */
+export default defineConfig({
+  testDir: './tests/e2e',
+  /* Run tests in files in parallel */
+  fullyParallel: true,
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI, // TODO: read about this
+  /* Retry on CI only */
+  retries: process.env.CI ? 2 : 0,
+  /* Opt out of parallel tests on CI. */
+  workers: process.env.CI ? 1 : undefined,
+  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  reporter: [
+    [ 'line' ],
+    [ 'junit', { outputFile: 'test-results/e2e/junit-e2e.xml' } ]
+  ],
+  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  use: {
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    baseURL: 'https://localhost/adminapp',
+
+    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
+
+    /* Ignore HTTPS errors for self-signed certificates */
+    ignoreHTTPSErrors: true,
+  },
+
+  /* Configure projects for major browsers */
+  projects: [
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/
+    },
+    {
+      name: 'chromium',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      }
+    }
+  ],
+
+  /* Run your local dev server before starting the tests */
+  webServer: {
+    command: 'echo "Using existing server"',
+    url: 'https://localhost/adminapp',
+    reuseExistingServer: true,
+    ignoreHTTPSErrors: true
+  },
+})

@@ -12,13 +12,13 @@ import {
 } from '@chakra-ui/react';
 import { GetApplicationDto, GetClaimsetDto, PutApplicationForm } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { applicationQueriesV1, claimsetQueriesV1, edorgQueries, queryKey } from '../../api';
-import { useNavContext, useTeamEdfiTenantNavContextLoaded } from '../../helpers';
+import { applicationQueriesV1, claimsetQueriesV1, edorgQueries } from '../../api';
+import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { SelectClaimset, SelectEdorg, SelectVendor } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { Icons } from '@edanalytics/common-ui';
@@ -31,7 +31,6 @@ export const EditApplication = (props: {
 }) => {
   const { application, claimset } = props;
   const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
-  const queryClient = useQueryClient();
   const popBanner = usePopBanner();
 
   const navigate = useNavigate();
@@ -70,7 +69,6 @@ export const EditApplication = (props: {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    formState,
     control,
     setError,
   } = useForm<PutApplicationForm>({

@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react';
 import { Icons } from '@edanalytics/common-ui';
 import { PutSbEnvironmentDto, PostSbEnvironmentTenantDTO } from '@edanalytics/models';
-import { FieldErrors, UseFormGetValues, UseFormRegister, UseFormSetValue, UseFormClearErrors } from 'react-hook-form';
+import { FieldErrors, UseFormGetValues, UseFormRegister, UseFormSetValue, UseFormClearErrors, UseFormSetError } from 'react-hook-form';
 
 // Type for tenant data used in form
 type Tenant = PostSbEnvironmentTenantDTO & { id?: number };
@@ -39,7 +39,10 @@ interface EditTenantManagementSectionProps {
   getValues: UseFormGetValues<PutSbEnvironmentDto>
   errors: FieldErrors<PutSbEnvironmentDto>
   clearErrors: UseFormClearErrors<PutSbEnvironmentDto>
+  setError: UseFormSetError<PutSbEnvironmentDto>
 }
+
+const ED_ORG_PATTERN = /^\s*\d+(\s*,\s*\d+)*\s*$/;
 
 export const EditTenantManagementSection = ({
   isMultitenant,
@@ -49,6 +52,7 @@ export const EditTenantManagementSection = ({
   getValues,
   errors,
   clearErrors,
+  setError,
 }: EditTenantManagementSectionProps) => {
 
   if (isMultitenant) {
@@ -365,29 +369,26 @@ export const EditTenantManagementSection = ({
             <Button
               onClick={() => {
                 const currentTenants = getValues('tenants') || [];
-                // Ensure we have a default tenant
-                if (currentTenants.length === 0) {
-                  setValue('tenants', [{
-                    name: 'default',
-                    odss: []
-                  }]);
-                }
-                const updatedTenants = [...currentTenants];
-                const defaultTenant = updatedTenants[0] || { name: 'default', odss: [] };
-                if (!defaultTenant.odss) {
-                  defaultTenant.odss = [];
-                }
-                // Find the max id currently in use and increment by 1 for the new ODS instance
-                const currentOdss = defaultTenant.odss;
+                const existingTenant = currentTenants[0] || { name: 'default', odss: [] };
+                const currentOdss = existingTenant.odss ?? [];
                 const idArray = currentOdss.map(o => typeof o.id === 'number' ? o.id : 0);
                 const maxId = idArray.length > 0 ? Math.max(...idArray) : 0;
-                defaultTenant.odss.push({
-                  id: maxId + 1,
-                  name: `ODS ${maxId + 1}`,
-                  dbName: `ODS_${maxId + 1}`,
-                  allowedEdOrgs: '',
-                });
-                updatedTenants[0] = defaultTenant;
+                // Find the max id currently in use and increment by 1 for the new ODS instance
+                const updatedTenants = [
+                  {
+                    ...existingTenant,
+                    odss: [
+                      ...currentOdss,
+                      {
+                        id: maxId + 1,
+                        name: `ODS ${maxId + 1}`,
+                        dbName: `ODS_${maxId + 1}`,
+                        allowedEdOrgs: '',
+                      },
+                    ],
+                  },
+                  ...currentTenants.slice(1),
+                ];
                 setValue('tenants', updatedTenants);
                 clearErrors('tenants.0.odss');
               }}
@@ -441,13 +442,14 @@ export const EditTenantManagementSection = ({
                             size="sm"
                             onChange={(e) => {
                               const currentTenants = getValues('tenants') || [];
-                              const updatedTenants = [...currentTenants];
-                              if (updatedTenants[0]?.odss?.[odsIndex]) {
-                                updatedTenants[0].odss[odsIndex] = {
-                                  ...updatedTenants[0].odss[odsIndex],
-                                  name: e.target.value
-                                };
-                                setValue('tenants', updatedTenants);
+                              setValue('tenants', currentTenants.map((tenant, i) =>
+                                i === 0
+                                  ? { ...tenant, odss: (tenant.odss ?? []).map((o, j) => j === odsIndex ? { ...o, name: e.target.value } : o) }
+                                  : tenant
+                              ));
+                              if (e.target.value.trim()) {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                clearErrors(`tenants.0.odss.${odsIndex}.name` as any);
                               }
                             }}
                           />
@@ -462,13 +464,14 @@ export const EditTenantManagementSection = ({
                             size="sm"
                             onChange={(e) => {
                               const currentTenants = getValues('tenants') || [];
-                              const updatedTenants = [...currentTenants];
-                              if (updatedTenants[0]?.odss?.[odsIndex]) {
-                                updatedTenants[0].odss[odsIndex] = {
-                                  ...updatedTenants[0].odss[odsIndex],
-                                  dbName: e.target.value
-                                };
-                                setValue('tenants', updatedTenants);
+                              setValue('tenants', currentTenants.map((tenant, i) =>
+                                i === 0
+                                  ? { ...tenant, odss: (tenant.odss ?? []).map((o, j) => j === odsIndex ? { ...o, dbName: e.target.value } : o) }
+                                  : tenant
+                              ));
+                              if (e.target.value.trim()) {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                clearErrors(`tenants.0.odss.${odsIndex}.dbName` as any);
                               }
                             }}
                           />
@@ -483,13 +486,20 @@ export const EditTenantManagementSection = ({
                             size="sm"
                             onChange={(e) => {
                               const currentTenants = getValues('tenants') || [];
-                              const updatedTenants = [...currentTenants];
-                              if (updatedTenants[0]?.odss?.[odsIndex]) {
-                                updatedTenants[0].odss[odsIndex] = {
-                                  ...updatedTenants[0].odss[odsIndex],
-                                  allowedEdOrgs: e.target.value
-                                };
-                                setValue('tenants', updatedTenants);
+                              setValue('tenants', currentTenants.map((tenant, i) =>
+                                i === 0
+                                  ? { ...tenant, odss: (tenant.odss ?? []).map((o, j) => j === odsIndex ? { ...o, allowedEdOrgs: e.target.value } : o) }
+                                  : tenant
+                              ));
+                              const val = e.target.value;
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              const fieldPath = `tenants.0.odss.${odsIndex}.allowedEdOrgs` as any;
+                              if (!val || val.trim() === '') {
+                                setError(fieldPath, { type: 'required', message: 'Education Organization Identifier(s) is required' });
+                              } else if (!ED_ORG_PATTERN.test(val)) {
+                                setError(fieldPath, { type: 'pattern', message: 'Education Organization Identifier(s) must be numbers separated by commas (e.g., "1, 255901, 25590100")' });
+                              } else {
+                                clearErrors(fieldPath);
                               }
                             }}
                           />
@@ -503,11 +513,11 @@ export const EditTenantManagementSection = ({
                           variant="ghost"
                           onClick={() => {
                             const currentTenants = getValues('tenants') || [];
-                            const updatedTenants = [...currentTenants];
-                            if (updatedTenants[0]?.odss) {
-                              updatedTenants[0].odss.splice(odsIndex, 1);
-                            }
-                            setValue('tenants', updatedTenants);
+                            setValue('tenants', currentTenants.map((tenant, i) =>
+                              i === 0
+                                ? { ...tenant, odss: (tenant.odss ?? []).filter((_, j) => j !== odsIndex) }
+                                : tenant
+                            ));
                             clearErrors('tenants.0.odss');
                           }}
                         >

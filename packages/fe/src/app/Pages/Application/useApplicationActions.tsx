@@ -1,7 +1,7 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 
 import { GetApplicationDto, GetEdfiTenantDto, edorgCompositeKey } from '@edanalytics/models';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { applicationQueriesV1 } from '../../api';
 import { useAuthorize, useNavToParent } from '../../helpers';
@@ -84,7 +84,7 @@ export const useSingleApplicationActions = ({
 
   const canDelete = useAuthorize(
     application &&
-      application._educationOrganizationIds.map((edorgId) => ({
+      application._educationOrganizationIds.map((_edorgId) => ({
         privilege: 'team.sb-environment.edfi-tenant.ods.edorg.application:delete',
         subject: {
           edfiTenantId: edfiTenant.id,

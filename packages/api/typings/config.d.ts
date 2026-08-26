@@ -45,17 +45,21 @@ declare module 'config' {
 
     AWS_REGION?: string | undefined;
     DB_ENGINE: 'mssql' | 'pgsql';
-    DB_SSL: boolean;
-    DB_TRUST_CERTIFICATE: boolean;
+    DB_SSL: boolean | 'true' | 'false';
+    DB_TRUST_CERTIFICATE: boolean | 'true' | 'false';
     DB_TTL_IN_MINUTES: number;
     DB_RUN_MIGRATIONS: boolean;
     DB_SYNCHRONIZE: boolean;
     FE_URL: string;
     MY_URL: string;
-    USE_YOPASS: boolean;
+    USE_YOPASS: boolean | 'true' | 'false';
     YOPASS_URL: string;
     API_PORT: number;
     SB_SYNC_CRON: string;
+    /** Max number of poll attempts before treating an EdOrg refresh job as timed out (default: 10) */
+    ADMINAPI_REFRESH_POLL_ATTEMPTS: number;
+    /** Milliseconds to wait between EdOrg refresh job poll attempts (default: 5000) */
+    ADMINAPI_REFRESH_POLL_INTERVAL_MS: number;
 
     SAMPLE_OIDC_CONFIG?: {
       issuer: string;
@@ -75,14 +79,29 @@ declare module 'config' {
     MY_URL_API_PATH: string;
     OPENAPI_TITLE: string;
     OPENAPI_DESCRIPTION: string;
+    OPEN_API: boolean;
     EDFI_URLS_TIMEOUT_MS: number;
+
+    /** Per-provider OIDC discovery timeout in milliseconds (default: 10000) */
+    OIDC_DISCOVERY_TIMEOUT_MS: number;
 
     RATE_LIMIT_TTL: number; // The time to live in milliseconds
     RATE_LIMIT_LIMIT: number; // The maximum number of requests within the ttl
 
     USE_PKCE: boolean;
 
+    SSL_VERIFICATION: boolean | 'true' | 'false';
+
     LOG_LEVEL: LogLevel;
+
+    CERT_BRUNO_SRC_REF?: string;
+    CERT_BRUNO_SRC_CHECKSUM?: string;
+    CERT_BRUNO_ON_DOWNLOAD_ERROR?: 'error' | 'warn' | 'skip';
+
+    /** Polling interval for MSSQL job queue in milliseconds (default: 1000) */
+    MSSQL_JOB_POLL_MS?: number;
+    /** Polling interval for MSSQL schedule loop in milliseconds (default: 10000) */
+    MSSQL_SCHEDULE_POLL_MS?: number;
   }
 
   const config: IConfig;

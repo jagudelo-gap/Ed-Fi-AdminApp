@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import omit from 'lodash/omit';
 import { Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { claimsetQueriesV1 } from '../../api';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { useSearchParamsObject } from '../../helpers/useSearch';

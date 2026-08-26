@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Link as RouterLink, generatePath, useMatches, useParams } from 'react-router-dom';
+import { Link as RouterLink, generatePath, useMatches, useParams } from 'react-router';
 import { flatRoutes } from '../routes';
 import { config } from '../../config/config';
 
@@ -71,7 +71,9 @@ export const Breadcrumbs = (props: BreadcrumbProps & StyleProps) => {
           <BreadcrumbItem key={to + i}>
             <BreadcrumbLink
               ref={(newRef) => {
-                i === breadcrumbs.length - 1 && setTerminalItemRef(newRef);
+                if (i === breadcrumbs.length - 1) {
+                  setTerminalItemRef(newRef);
+                }
               }}
               as={RouterLink}
               to={to}

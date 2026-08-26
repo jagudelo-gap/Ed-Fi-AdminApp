@@ -1,6 +1,6 @@
 import { Icons } from '@edanalytics/common-ui';
 import { TeamBasePrivilege, TeamEdfiTenantPrivilege } from '@edanalytics/models';
-import { RouteObject, generatePath, useNavigate } from 'react-router-dom';
+import { RouteObject, generatePath, useNavigate } from 'react-router';
 
 export type BaseRow = { id: number; displayName: string };
 
@@ -13,12 +13,18 @@ export const useReadTeamEntity = (props: {
     sbEnvironmentId?: string | number | undefined;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } & Record<any, string | number>;
-  privilege: TeamBasePrivilege | TeamEdfiTenantPrivilege;
+  privilege?: TeamBasePrivilege | TeamEdfiTenantPrivilege;
 }) => {
   const path = props.route.path!;
   const navigate = useNavigate();
-  const { params, entity, privilege } = props;
-  const toOptions = generatePath(path, params);
+  const { params, entity } = props;
+  const pathParams = Object.fromEntries(
+    Object.entries(params).map(([key, value]) => [
+      key,
+      value === undefined ? undefined : String(value),
+    ]),
+  );
+  const toOptions = generatePath(path, pathParams);
   return entity === undefined
     ? undefined
     : {

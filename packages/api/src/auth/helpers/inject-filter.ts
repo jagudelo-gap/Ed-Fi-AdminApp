@@ -13,7 +13,7 @@ export const InjectFilter = createParamDecorator(
     const request = ctx.switchToHttp().getRequest();
     const cache: AuthorizationCache = request.authorizationCache;
 
-    let ids: Ids | undefined = undefined;
+    let ids: Ids | undefined;
 
     if (isCachedByEdfiTenant(privilege)) {
       const edfiTenantId = Number(request?.params?.edfiTenantId);

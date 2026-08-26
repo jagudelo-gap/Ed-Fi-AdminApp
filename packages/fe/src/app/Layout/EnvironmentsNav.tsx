@@ -10,8 +10,8 @@ import { type IconType } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import lunr, { Query, tokenizer } from 'lunr';
-import { LegacyRef, useMemo, useRef, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useMemo, useRef, useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router';
 import { teamQueries } from '../api';
 import { AuthorizeConfig, useAuthorize, useTeamNavContext } from '../helpers';
 
@@ -40,7 +40,7 @@ export const EnvironmentsNav = () => {
     const items = Object.entries(envItems.data || {}).map(([key, value]) => {
       // add in searchable strings for entity types that are available. e.g. "edorgs" string.
       const resourceTrueValues = Object.entries(value)
-        .filter(([key, value]) => value === true)
+        .filter(([_key, value]) => value === true)
         .map(([key]) => key)
         .join(' ');
       return {
@@ -82,7 +82,7 @@ export const EnvironmentsNav = () => {
 
   const navigate = useNavigate();
 
-  const parentRef = useRef();
+  const parentRef = useRef<HTMLDivElement | null>(null);
 
   const rowVirtualizer = useVirtualizer({
     count: searchResults.length,
@@ -101,7 +101,7 @@ export const EnvironmentsNav = () => {
           <Box
             overflowY="auto"
             maxH="300px"
-            ref={parentRef as unknown as LegacyRef<HTMLDivElement>}
+            ref={parentRef}
             mt={2}
           >
             <Box h={rowVirtualizer.getTotalSize() + 45 + 'px'}>
@@ -136,7 +136,7 @@ export const EnvironmentsNav = () => {
                     const tenantResourceActionConfigs: ActionsType = Object.fromEntries(
                       Object.entries(item)
                         .filter(([key, value]) => key in resourceNames && value === true)
-                        .map(([key, value]): [string, LinkActionProps] => [
+                        .map(([key, _value]): [string, LinkActionProps] => [
                           key,
                           {
                             to: `/as/${teamId}/sb-environments/${item.sbEnvironmentId}/edfi-tenants/${item.edfiTenantId}/${key}`,

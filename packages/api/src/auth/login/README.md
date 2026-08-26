@@ -55,6 +55,13 @@ The retrieved session value is then stored in the NestJS request pipeline for an
 
 ## Logout
 
-Because of the way request authentication works, all that's needed in order to log a user out is to delete their session, because that will guarantee that all subsequent requests using their old `sid` will fail.
+Because of the way request authentication works, deleting the session is all that's needed to log a user out of the app itself, because that guarantees that all subsequent requests using their old `sid` will fail.
 
-We don't currently implement back-channel logout or other ties to the IdP but eventually we should.
+In addition to destroying the local session, the logout route performs OIDC RP-Initiated Logout against the IdP the user logged in with. At login, the session records the provider (`oidcId`) and the `id_token`; at logout, the app redirects to that provider's `end_session_endpoint` (taken from its discovered metadata) with `id_token_hint` and `post_logout_redirect_uri` (the latter must be registered in the IdP). Providers that don't expose an `end_session_endpoint` (e.g. Google) get a local-only logout, and the user is shown a message explaining that the IdP session may still be active.
+
+We don't currently implement back-channel logout (IdP-initiated), so signing out at the IdP does not end the app session.
+
+### Security notes
+
+- **`id_token_hint` exposure.** RP-Initiated Logout sends the `id_token` as the `id_token_hint` query parameter on a browser redirect, so the JWT is briefly visible in the browser `Location` header (and therefore in history, referrer, and any proxy logs). This is inherent to the OIDC RP-Initiated Logout spec and applies to every provider that advertises an `end_session_endpoint`; providers without one (e.g. Google) take the local-only path and never receive the hint. The token is otherwise kept server-side on the session and is never exposed to front-end JavaScript. Keep `id_token` lifetimes short at the IdP to limit the value of a leaked hint.
+- **Logout CSRF.** `GET /auth/logout` has no CSRF protection, so a forged cross-site request can sign a user out both locally and, now, at the IdP. We accept this as a low-impact nuisance: it can force a logout but never a login, and the recovery path is simply to sign back in. If this becomes a concern, switch logout to `POST` with CSRF protection.

@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetRoleDto } from '@edanalytics/models';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { roleQueries } from '../../api';
 import { teamRoleAuthConfig, useAuthorize } from '../../helpers';

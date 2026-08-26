@@ -21,7 +21,7 @@ import { Column } from '@tanstack/react-table';
 import { Icons } from '../Icons';
 
 export const SbaaTableFilters: DivComponent = (props) => {
-  const { children, ...rest } = props;
+  const { children: _children, ...rest } = props;
   const {
     table,
     showSettings: [showSettings],

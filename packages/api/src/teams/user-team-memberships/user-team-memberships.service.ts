@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   GetUserDto,
@@ -40,7 +40,7 @@ export class UserTeamMembershipsService {
     });
   }
 
-  async remove(teamId: number, id: number, user: GetUserDto) {
+  async remove(teamId: number, id: number, _user: GetUserDto) {
     const old = await this.findOne(teamId, id).catch(throwNotFound);
     await this.userTeamMembershipsRepository.remove(old);
     return undefined;

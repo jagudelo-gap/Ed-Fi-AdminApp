@@ -1,6 +1,6 @@
 import { Box, Divider, Image, Link, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import logoUrl from '../../assets/ed-fi-logo-light.svg';
 import bgUrl from '../../assets/starting-blocks-no-text.svg';
 import { externalUrls } from '../routes/pathConstants';

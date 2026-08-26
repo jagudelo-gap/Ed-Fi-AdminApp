@@ -1,6 +1,6 @@
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { edorgQueries } from '../../api';
 import { ViewEdorg } from './ViewEdorg';
 import { useQuery } from '@tanstack/react-query';

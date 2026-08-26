@@ -1,7 +1,17 @@
 import 'reflect-metadata';
-import { SbEnvironment } from '@edanalytics/models-server';
+import { EdfiTenant, SbEnvironment } from '@edanalytics/models-server';
+import { SbEnvironmentConfigPublic, SbEnvironmentConfigPrivate } from '@edanalytics/models';
 import { AdminApiServiceV1 } from './admin-api.v1.service';
-import { AxiosError } from 'axios';
+import { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { CustomHttpException } from '../../../../utils';
+
+// Minimal shape exposing the private `getAdminApiClientUsingEnv` method so tests can
+// spy on it without an explicit `any`. Intentionally not intersected with
+// AdminApiServiceV1 itself, since that would merge with the real (differently-typed)
+// private method and confuse jest.spyOn's overload resolution.
+interface AdminApiServiceV1WithPrivateClient {
+  getAdminApiClientUsingEnv: (environment: SbEnvironment) => { get: jest.Mock };
+}
 
 describe('AdminApiServiceV1 - Extension Methods', () => {
   let service: AdminApiServiceV1;
@@ -21,10 +31,10 @@ describe('AdminApiServiceV1 - Extension Methods', () => {
       adminApiUrl: 'https://api.test.com',
       adminApiVersion: 'v1',
       startingBlocks: false,
-    } as any,
+    } as unknown as SbEnvironmentConfigPublic,
     configPrivate: {
       adminApiSecret: 'test-secret',
-    } as any,
+    } as unknown as SbEnvironmentConfigPrivate,
   };
 
   // Helper function to create proper AxiosError mocks
@@ -32,14 +42,14 @@ describe('AdminApiServiceV1 - Extension Methods', () => {
     isAxiosError: true,
     message,
     name: 'AxiosError',
-    config: {} as any,
+    config: {} as InternalAxiosRequestConfig,
     toJSON: () => ({}),
     response: {
       status,
       statusText: message,
       data: {},
       headers: {},
-      config: {} as any,
+      config: {} as InternalAxiosRequestConfig,
     },
   });
 
@@ -48,139 +58,151 @@ describe('AdminApiServiceV1 - Extension Methods', () => {
   });
 
   describe('getTenants', () => {
-    it('should successfully return tenants with EdOrgs and OdsInstances from details endpoint', async () => {
+    it('should successfully return default tenant with ODS instances', async () => {
       const environment = mockSbEnvironment as SbEnvironment;
       
-      // Mock successful API response with tenant data
-      const mockTenantsResponse = [
-        { tenantName: 'tenant-one' },
-        { tenantName: 'tenant-two' },
+      // Mock successful API response with ODS instances
+      const mockOdsInstancesResponse = [
+        {
+          id: 1,
+          name: 'Production ODS',
+          instanceType: 'Production',
+          version: '5.3',
+          isExtended: true,
+          status: 'Active',
+        },
+        {
+          id: 2,
+          name: 'Test ODS',
+          instanceType: 'Test',
+          version: '5.3',
+          isExtended: false,
+          status: 'Active',
+        },
       ];
 
-      const mockDetailsResponseOne = {
-        odsInstances: [
-          {
-            odsInstanceId: 1,
-            name: 'ODS One',
-            instanceType: 'Production',
-            edOrgs: [
-            {
-              instanceId: 1,
-              instanceName: 'ODS One',
-              educationOrganizationId: 255901,
-              nameOfInstitution: 'School One',
-              shortNameOfInstitution: 'S1',
-              discriminator: 'edfi.School',
-              parentId: 255900,
-            },
-            ],
-          },
-        ],
-      };
+      const mockGet = jest.fn().mockResolvedValue(mockOdsInstancesResponse);
 
-      const mockDetailsResponseTwo = {
-        odsInstances: [
-          {
-            id: 2,
-            name: 'ODS Two',
-            instanceType: 'Test',
-            edOrgs: [
-            {
-              instanceId: 2,
-              instanceName: 'ODS Two',
-              educationOrganizationId: 255902,
-              nameOfInstitution: 'School Two',
-              discriminator: 'edfi.School',
-            },
-            ],
-          },
-        ],
-      };
-
-      const mockGet = jest.fn()
-        .mockResolvedValueOnce(mockTenantsResponse)
-        .mockResolvedValueOnce(mockDetailsResponseOne)
-        .mockResolvedValueOnce(mockDetailsResponseTwo);
-
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
         get: mockGet,
       });
 
       const result = await service.getTenants(environment);
 
-      expect(result).toHaveLength(2);
-      expect(mockGet).toHaveBeenCalledWith('v1/tenants');
-      expect(mockGet).toHaveBeenCalledWith('v1/tenant/tenant-one/details');
-      expect(mockGet).toHaveBeenCalledWith('v1/tenant/tenant-two/details');
-
-      // Verify first tenant
+      expect(mockGet).toHaveBeenCalledWith('v1/odsInstances');
+      expect(result).toHaveLength(1);
+      
+      // Verify default tenant structure
       expect(result[0]).toMatchObject({
-        id: 'tenant-one',
-        name: 'tenant-one',
+        id: 'default',
+        name: 'Test Environment',
       });
-      expect(result[0].odsInstances[0].edOrgs).toHaveLength(1);
-      expect(result[0].odsInstances[0].edOrgs[0]).toMatchObject({
-        instanceId: 1,
-        instanceName: 'ODS One',
-        educationOrganizationId: 255901,
-        nameOfInstitution: 'School One',
-        shortNameOfInstitution: 'S1',
-        discriminator: 'edfi.School',
-        parentId: 255900,
-      });
-      expect(result[0].odsInstances).toHaveLength(1);
+      
+      // Verify ODS instances are mapped correctly
+      expect(result[0].odsInstances).toHaveLength(2);
       expect(result[0].odsInstances![0]).toMatchObject({
         id: 1,
-        name: 'ODS One',
+        name: 'Production ODS',
         instanceType: 'Production',
       });
-
-      // Verify second tenant
-      expect(result[1]).toMatchObject({
-        id: 'tenant-two',
-        name: 'tenant-two',
+      expect(result[0].odsInstances![1]).toMatchObject({
+        id: 2,
+        name: 'Test ODS',
+        instanceType: 'Test',
       });
-      expect(result[1].odsInstances[0].edOrgs).toHaveLength(1);
-      expect(result[1].odsInstances[0].edOrgs[0]).toMatchObject({
-        instanceId: 2,
-        instanceName: 'ODS Two',
-        educationOrganizationId: 255902,
-        nameOfInstitution: 'School Two',
-        discriminator: 'edfi.School',
-      });
-      expect(result[1].odsInstances).toHaveLength(1);
-      expect(result[1].odsInstances![0].id).toBe(2);
+      
+      // Verify edOrgs are empty
+      expect(result[0].odsInstances![0].edOrgs).toEqual([]);
+      expect(result[0].odsInstances![1].edOrgs).toEqual([]);
     });
 
-    it('should handle tenant details endpoint failure gracefully', async () => {
+    it('should map only id, name, and instanceType from ODS instances', async () => {
       const environment = mockSbEnvironment as SbEnvironment;
       
-      const mockTenantsResponse = [{ tenantName: 'tenant-one' }];
+      const mockOdsInstancesResponse = [
+        {
+          id: 1,
+          name: 'ODS One',
+          instanceType: 'Production',
+          version: '6.0', // Should not be mapped
+          isExtended: true, // Should not be mapped
+          status: 'Active', // Should not be mapped
+          extraField: 'value', // Should not be mapped
+        },
+      ];
 
-      const mockGet = jest.fn()
-        .mockResolvedValueOnce(mockTenantsResponse)
-        .mockRejectedValueOnce(new Error('Details endpoint error'));
+      const mockGet = jest.fn().mockResolvedValue(mockOdsInstancesResponse);
 
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
         get: mockGet,
       });
 
       const result = await service.getTenants(environment);
 
-      expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
-        id: 'tenant-one',
-        name: 'tenant-one',
-        odsInstances: [],
-      });
+      const odsInstance = result[0].odsInstances![0];
+      expect(odsInstance.id).toBe(1);
+      expect(odsInstance.name).toBe('ODS One');
+      expect(odsInstance.instanceType).toBe('Production');
+      expect(odsInstance.edOrgs).toEqual([]);
+      
+      // Verify extra fields are not present
+      expect(odsInstance).not.toHaveProperty('version');
+      expect(odsInstance).not.toHaveProperty('isExtended');
+      expect(odsInstance).not.toHaveProperty('status');
+      expect(odsInstance).not.toHaveProperty('extraField');
     });
 
-    it('should fallback to default tenant when endpoint returns 404', async () => {
+    it('should handle missing ODS instance ID by setting it to null', async () => {
       const environment = mockSbEnvironment as SbEnvironment;
       
-      const axiosError = createAxiosError(404, 'Not Found');
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
-        get: jest.fn().mockRejectedValue(axiosError),
+      const mockOdsInstancesResponse = [
+        {
+          name: 'ODS Without ID',
+          instanceType: 'Test',
+        },
+      ];
+
+      const mockGet = jest.fn().mockResolvedValue(mockOdsInstancesResponse);
+
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
+        get: mockGet,
+      });
+
+      const result = await service.getTenants(environment);
+
+      expect(result[0].odsInstances![0].id).toBeNull();
+      expect(result[0].odsInstances![0].name).toBe('ODS Without ID');
+    });
+
+    it('should use "Unknown" for missing ODS instance names', async () => {
+      const environment = mockSbEnvironment as SbEnvironment;
+      
+      const mockOdsInstancesResponse = [
+        {
+          id: 1,
+          instanceType: 'Production',
+          // name is missing
+        },
+      ];
+
+      const mockGet = jest.fn().mockResolvedValue(mockOdsInstancesResponse);
+
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
+        get: mockGet,
+      });
+
+      const result = await service.getTenants(environment);
+
+      expect(result[0].odsInstances![0].name).toBe('Unknown');
+    });
+
+    it('should return empty odsInstances array when API returns empty array', async () => {
+      const environment = mockSbEnvironment as SbEnvironment;
+      
+      const mockGet = jest.fn().mockResolvedValue([]);
+
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
+        get: mockGet,
       });
 
       const result = await service.getTenants(environment);
@@ -193,12 +215,25 @@ describe('AdminApiServiceV1 - Extension Methods', () => {
       });
     });
 
-    it('should use "Default Tenant" when environment name is empty and endpoint returns 404', async () => {
+    it('should throw error when odsInstances endpoint returns non-array', async () => {
+      const environment = mockSbEnvironment as SbEnvironment;
+      
+      const mockGet = jest.fn().mockResolvedValue({ unexpected: 'object' });
+
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
+        get: mockGet,
+      });
+
+      await expect(service.getTenants(environment)).rejects.toThrow();
+    });
+
+    it('should use "Default Tenant" when environment name is missing', async () => {
       const envWithoutName = { ...mockSbEnvironment, name: '' } as SbEnvironment;
       
-      const axiosError = createAxiosError(404, 'Not Found');
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
-        get: jest.fn().mockRejectedValue(axiosError),
+      const mockGet = jest.fn().mockResolvedValue([]);
+
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
+        get: mockGet,
       });
 
       const result = await service.getTenants(envWithoutName);
@@ -206,11 +241,11 @@ describe('AdminApiServiceV1 - Extension Methods', () => {
       expect(result[0].name).toBe('Default Tenant');
     });
 
-    it('should throw error for non-404 errors (auth, network, server errors)', async () => {
+    it('should throw error for authentication failures', async () => {
       const environment = mockSbEnvironment as SbEnvironment;
       
       const axiosError = createAxiosError(401, 'Unauthorized');
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
         get: jest.fn().mockRejectedValue(axiosError),
       });
 
@@ -219,23 +254,46 @@ describe('AdminApiServiceV1 - Extension Methods', () => {
       });
     });
 
+    it('should throw error for server errors', async () => {
+      const environment = mockSbEnvironment as SbEnvironment;
+      
+      const axiosError = createAxiosError(500, 'Internal Server Error');
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
+        get: jest.fn().mockRejectedValue(axiosError),
+      });
+
+      await expect(service.getTenants(environment)).rejects.toMatchObject({
+        message: 'Internal Server Error',
+      });
+    });
+
+    it('should throw error for network failures', async () => {
+      const environment = mockSbEnvironment as SbEnvironment;
+      
+      const networkError = new Error('Network Error');
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
+        get: jest.fn().mockRejectedValue(networkError),
+      });
+
+      await expect(service.getTenants(environment)).rejects.toMatchObject({
+        message: 'Network Error',
+      });
+    });
+
     it('should return TenantDto array with correct structure', async () => {
       const environment = mockSbEnvironment as SbEnvironment;
       
-      const mockTenantsResponse = [{ tenantName: 'tenant-one' }];
-      const mockDetailsResponse = {
-        odsInstances: [
-          {
-            edOrgs: [],
-          }
-        ],
-      };
+      const mockOdsInstancesResponse = [
+        {
+          id: 1,
+          name: 'Test ODS',
+          instanceType: 'Test',
+        },
+      ];
 
-      const mockGet = jest.fn()
-        .mockResolvedValueOnce(mockTenantsResponse)
-        .mockResolvedValueOnce(mockDetailsResponse);
+      const mockGet = jest.fn().mockResolvedValue(mockOdsInstancesResponse);
 
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
         get: mockGet,
       });
 
@@ -243,136 +301,85 @@ describe('AdminApiServiceV1 - Extension Methods', () => {
 
       expect(result[0]).toHaveProperty('id');
       expect(result[0]).toHaveProperty('name');
-      expect(result[0].odsInstances![0]).toHaveProperty('edOrgs');
       expect(result[0]).toHaveProperty('odsInstances');
       expect(typeof result[0].id).toBe('string');
       expect(typeof result[0].name).toBe('string');
-      expect(Array.isArray(result[0].odsInstances[0].edOrgs)).toBe(true);
       expect(Array.isArray(result[0].odsInstances)).toBe(true);
+      expect(result[0].odsInstances![0]).toHaveProperty('id');
+      expect(result[0].odsInstances![0]).toHaveProperty('name');
+      expect(result[0].odsInstances![0]).toHaveProperty('instanceType');
+      expect(result[0].odsInstances![0]).toHaveProperty('edOrgs');
+      expect(Array.isArray(result[0].odsInstances![0].edOrgs)).toBe(true);
     });
 
-    it('should set ODS instance ID to null when odsInstanceId and id are missing', async () => {
+    it('should always return edOrgs as empty array for each ODS instance', async () => {
       const environment = mockSbEnvironment as SbEnvironment;
       
-      const mockTenantsResponse = [{ tenantName: 'tenant-one' }];
-      const mockDetailsResponse = {
-        odsInstances: [
-          { name: 'ODS 1', instanceType: 'Type1', edOrgs: [], },
-          { name: 'ODS 2', instanceType: 'Type2', edOrgs: [], },
-        ],
-      };
-
-      const mockGet = jest.fn()
-        .mockResolvedValueOnce(mockTenantsResponse)
-        .mockResolvedValueOnce(mockDetailsResponse);
-
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
-        get: mockGet,
-      });
-
-      const result = await service.getTenants(environment);
-
-      expect(result[0].odsInstances![0].id).toBeNull();
-      expect(result[0].odsInstances![1].id).toBeNull();
-    });
-
-    it('should generate default names for ODS instances with missing names', async () => {
-      const environment = mockSbEnvironment as SbEnvironment;
-      
-      const mockTenantsResponse = [{ tenantName: 'tenant-one' }];
-      const mockDetailsResponse = {
-        odsInstances: [{edOrgs: []}, {edOrgs: []}, {edOrgs: []}],
-      };
-
-      const mockGet = jest.fn()
-        .mockResolvedValueOnce(mockTenantsResponse)
-        .mockResolvedValueOnce(mockDetailsResponse);
-
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
-        get: mockGet,
-      });
-
-      const result = await service.getTenants(environment);
-
-      expect(result[0].odsInstances![0].name).toBe('ODS Instance 1');
-      expect(result[0].odsInstances![1].name).toBe('ODS Instance 2');
-      expect(result[0].odsInstances![2].name).toBe('ODS Instance 3');
-    });
-
-    it('should handle non-array response from tenants endpoint by returning default tenant', async () => {
-      const environment = mockSbEnvironment as SbEnvironment;
-      
-      // Mock API returning non-array response
-      const mockGet = jest.fn().mockResolvedValue({ unexpected: 'object' });
-
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
-        get: mockGet,
-      });
-
-      const result = await service.getTenants(environment);
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
-        id: 'default',
-        name: 'Test Environment',
-        odsInstances: [],
-      });
-    });
-
-    it('should filter out invalid tenant objects and return valid tenants', async () => {
-      const environment = mockSbEnvironment as SbEnvironment;
-      
-      const mockTenantsResponse = [
-        { tenantName: 'valid-tenant' },
-        null, // Invalid: null
-        { invalidProperty: 'no-tenantName' }, // Invalid: missing tenantName
-        { tenantName: 123 }, // Invalid: tenantName is not a string
-        { tenantName: 'another-valid-tenant' },
+      const mockOdsInstancesResponse = [
+        { id: 1, name: 'ODS 1', instanceType: 'Type1' },
+        { id: 2, name: 'ODS 2', instanceType: 'Type2' },
+        { id: 3, name: 'ODS 3', instanceType: 'Type3' },
       ];
 
-      const mockDetailsResponse = {
-        odsInstances: [],
-      };
+      const mockGet = jest.fn().mockResolvedValue(mockOdsInstancesResponse);
 
-      const mockGet = jest.fn()
-        .mockResolvedValueOnce(mockTenantsResponse)
-        .mockResolvedValueOnce(mockDetailsResponse)
-        .mockResolvedValueOnce(mockDetailsResponse);
-
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
+      jest.spyOn(service as unknown as AdminApiServiceV1WithPrivateClient, 'getAdminApiClientUsingEnv').mockReturnValue({
         get: mockGet,
       });
 
       const result = await service.getTenants(environment);
 
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('valid-tenant');
-      expect(result[1].id).toBe('another-valid-tenant');
+      result[0].odsInstances!.forEach((odsInstance) => {
+        expect(odsInstance.edOrgs).toEqual([]);
+        expect(odsInstance.edOrgs).toHaveLength(0);
+      });
     });
+  });
 
-    it('should return default tenant when all tenant objects are invalid', async () => {
+  describe('triggerEdOrgRefresh', () => {
+    it('should return null since V1 does not support EdOrg refresh', async () => {
       const environment = mockSbEnvironment as SbEnvironment;
-      
-      const mockTenantsResponse = [
-        null,
-        { invalidProperty: 'no-tenantName' },
-        { tenantName: 123 },
-      ];
 
-      const mockGet = jest.fn().mockResolvedValue(mockTenantsResponse);
+      const result = await service.triggerEdOrgRefresh(environment);
 
-      jest.spyOn(service as any, 'getAdminApiClientUsingEnv').mockReturnValue({
-        get: mockGet,
-      });
+      expect(result).toBeNull();
+    });
+  });
 
-      const result = await service.getTenants(environment);
+  describe('pollJobStatus', () => {
+    it('should return "timeout" since V1 does not support job polling', async () => {
+      const environment = mockSbEnvironment as SbEnvironment;
 
-      expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
-        id: 'default',
-        name: 'Test Environment',
-        odsInstances: [],
-      });
+      const result = await service.pollJobStatus(environment, 'job-123');
+
+      expect(result).toBe('timeout');
+    });
+  });
+
+  describe('getClaimset', () => {
+    const mockEdfiTenant: Partial<EdfiTenant> = {
+      id: 1,
+      name: 'test-tenant',
+      sbEnvironmentId: 1,
+      sbEnvironment: mockSbEnvironment as SbEnvironment,
+    };
+
+    it.each([
+      ['NaN', NaN],
+      ['zero', 0],
+      ['negative', -5],
+      ['non-integer', 1.5],
+      ['Infinity', Infinity],
+    ])('should reject with a 400 CustomHttpException for a %s claimsetId', async (_desc, claimsetId) => {
+      const error: CustomHttpException = await service
+        .getClaimset(mockEdfiTenant as EdfiTenant, claimsetId)
+        .then(() => {
+          throw new Error('expected getClaimset to reject');
+        })
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(CustomHttpException);
+      expect(error.getStatus()).toBe(400);
     });
   });
 });

@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetEdfiTenantDto, OWNERSHIP_RESOURCE_TYPE } from '@edanalytics/models';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { edfiTenantQueriesGlobal } from '../../api';
 import {
@@ -167,19 +167,19 @@ export const useEdfiTenantGlobalActions = (
           },
         }
       : {}),
-    ...(canRefreshResources && sbEnvironment.startingBlocks
+    ...(canRefreshResources && !sbEnvironment.startingBlocks && sbEnvironment.version === 'v2'
       ? {
           RefreshResources: {
             icon: Icons.Download,
             isPending: refreshResources.isPending,
-            text: 'Sync with SB',
-            title: 'Sync ODSs and Ed-Orgs from Starting Blocks to SBAA.',
+            text: 'Sync Resources',
+            title: 'Sync ODSs and Ed-Orgs from Admin API.',
             onClick: async () => {
               await refreshResources.mutateAsync(
                 { entity: edfiTenant, pathParams: null },
                 {
                   ...mutationErrCallback({ popGlobalBanner: popBanner }),
-                  onSuccess(result, variables, context) {
+                  onSuccess(result, _variables, _context) {
                     popSyncBanner({
                       popBanner,
                       syncQueue: result,

@@ -1,6 +1,6 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetIntegrationAppDto } from '@edanalytics/models';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import { usePaths } from '../../routes/paths';
 
 export const IntegrationAppLink = ({
@@ -19,7 +19,7 @@ export const IntegrationAppLink = ({
         {applicationName}
       </RouterLink>
     </Link>
-  ) : !!integrationAppId ? (
+  ) : integrationAppId ? (
     <Text
       title="Integration application may have been deleted, or you lack access."
       as="i"

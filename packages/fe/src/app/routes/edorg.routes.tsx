@@ -1,7 +1,7 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetEdorgDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { EdorgPage } from '../Pages/Edorg/EdorgPage';
 import { EdorgsPage } from '../Pages/Edorg/EdorgsPage';
 import { edorgQueries } from '../api';
@@ -15,7 +15,7 @@ import { CreateEdorg } from '../Pages/Edorg/CreateEdorgPage';
 
 const EdorgBreadcrumb = () => {
   const params = useParams() as { edorgId: string };
-  const { edfiTenant, edfiTenantId, teamId, asId } = useTeamEdfiTenantNavContextLoaded();
+  const { edfiTenant, teamId } = useTeamEdfiTenantNavContextLoaded();
   const edorg = useQuery(
     edorgQueries.getOne({
       id: params.edorgId,
@@ -31,7 +31,7 @@ export const edorgIndexRoute: RouteObject = {
 };
 export const edorgCreateRoute: RouteObject = {
   path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/:edfiTenantId/edorgs/create',
-  element: <VersioningHoc v2={<CreateEdorg />} />,
+  element: <VersioningHoc v2={<CreateEdorg />} v3={<CreateEdorg />} />,
   handle: { crumb: () => 'Create ed-org' },
 };
 

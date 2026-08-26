@@ -52,7 +52,6 @@ export class AuthorizedGuard implements CanActivate {
         } else if (authorizeRule === null) {
           Logger.verbose('Authorization explicitly skipped for route' + request.url);
         } else {
-          /* eslint-disable-next-line */
           function checkAbility(authorizeRule: AuthorizeMetadata) {
             const privilege = authorizeRule.privilege;
             const subjectTemplate = authorizeRule.subject;
@@ -94,7 +93,7 @@ export class AuthorizedGuard implements CanActivate {
               };
             }
 
-            let subjectId = undefined;
+            let subjectId: string;
             if (subjectTemplate.id === '__filtered__') {
               subjectId = '__filtered__';
             } else {

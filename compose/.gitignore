@@ -4,3 +4,4 @@
 *.key
 
 logs/
+db-backup/*.sql

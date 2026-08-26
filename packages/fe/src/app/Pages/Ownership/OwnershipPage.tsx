@@ -1,6 +1,6 @@
 import { PageTemplate } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { ownershipQueries } from '../../api';
 import { useTeamNavContext } from '../../helpers';
 import { ViewOwnership } from './ViewOwnership';

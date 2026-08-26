@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as config from 'config';
+import { asBool } from '../utils';
 import typeormConfig from './typeorm.config';
 
 @Injectable()
@@ -26,8 +27,8 @@ export class DatabaseConfigService {
         retryAttempts,
         retryDelay,
         extra: {
-          trustServerCertificate: config.DB_TRUST_CERTIFICATE,
-          encrypt: config.DB_SSL,
+          trustServerCertificate: asBool(config.DB_TRUST_CERTIFICATE),
+          encrypt: asBool(config.DB_SSL),
         },
       };
     } catch (error) {

@@ -1,0 +1,29 @@
+meta {
+  name: environments/get v3 single-tenant - synced data present (200)
+  type: http
+  seq: 3
+  tags: Environments
+}
+
+get {
+  url: {{BASE_URL}}/sb-environments/{{v3SingleEnvId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+tests {
+  test("environments/get v3 single-tenant - status is 200", function() {
+    const status = res.getStatus();
+    expect(status).to.equal(200);
+  });
+  
+  test("environments/get v3 single-tenant - tenant data was synced", function() {
+    const body = res.getBody();
+    expect(body.edfiTenants).to.be.an("array").that.is.not.empty;
+    expect(body.edfiTenants[0].odss).to.be.an("array").that.is.not.empty;
+  });
+}

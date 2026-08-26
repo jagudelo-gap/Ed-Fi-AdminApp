@@ -12,7 +12,7 @@ import { GetApiClientDtoV2, PutApiClientDtoV2, PutApiClientFormDtoV2 } from '@ed
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { SelectOds } from '../../helpers/EntitySelectors';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { apiClientQueriesV2 } from '../../api';
@@ -33,7 +33,7 @@ export const EditApiClient = (props: { apiClient: GetApiClientDtoV2 }) => {
 
   const goToView = () => {
     navigate(
-      `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/applications/${apiClient.applicationId}/apiclients/${apiClient.id}`
+      `/as/${teamId}/sb-environments/${edfiTenant.sbEnvironmentId}/edfi-tenants/${edfiTenantId}/applications/${apiClient.applicationId}/apiClients/${apiClient.id}`
     );
   };
 

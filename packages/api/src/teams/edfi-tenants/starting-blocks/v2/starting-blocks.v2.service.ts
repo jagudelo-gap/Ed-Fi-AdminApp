@@ -8,11 +8,10 @@ import {
   SbV2TenantResourceTree,
 } from '@edanalytics/models';
 import { EdfiTenant, Ods, SbEnvironment } from '@edanalytics/models-server';
-import { wait } from '@edanalytics/utils';
+import { createConcurrencyLimiter, wait } from '@edanalytics/utils';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
-import pLimit from 'p-limit';
 import { EntityManager, In, Repository } from 'typeorm';
 import {
   DeltaCounts,
@@ -28,7 +27,7 @@ import { randomUUID } from 'crypto';
 import { OdsRowCountService } from './ods-rowcount.service';
 
 // TODO eventually need to limit concurrency per-environment (to 1) but across envs we can run in parallel
-const limit = pLimit(1);
+const limit = createConcurrencyLimiter(1);
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */ // --> OFF
 @Injectable()
@@ -116,7 +115,7 @@ export class StartingBlocksServiceV2 {
 
     try {
       configPublic.odsApiMeta = await fetch(sbEnvironment.usableDomain).then((r) => r.json());
-    } catch (cantRetrieveMetaError) {
+    } catch (_cantRetrieveMetaError) {
       this.logger.warn('Failed to GET ODS API root URL at ' + sbEnvironment.usableDomain);
     }
 

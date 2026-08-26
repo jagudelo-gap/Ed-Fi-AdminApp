@@ -1,0 +1,23 @@
+meta {
+  name: environments/cleanup - delete v3 multi-tenant (2xx)
+  type: http
+  seq: 8
+  tags: Environments
+}
+
+delete {
+  url: {{BASE_URL}}/sb-environments/{{v3MultiEnvId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+tests {
+  test("environments/cleanup - delete v3 multi-tenant status is 2xx", function() {
+    const status = res.getStatus();
+    expect(status).to.be.within(200, 299);
+  });
+}

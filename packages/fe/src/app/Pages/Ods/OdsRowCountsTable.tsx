@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Collapse, Flex, Spinner } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { odsQueries } from '../../api';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { DateFormat, SbaaTableAllInOne, ValueAsDate } from '@edanalytics/common-ui';
 

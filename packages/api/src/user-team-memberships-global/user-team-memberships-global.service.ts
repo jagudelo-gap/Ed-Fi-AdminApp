@@ -33,7 +33,7 @@ export class UserTeamMembershipsGlobalService {
     return this.userTeamMembershipsRepository.save(updated);
   }
 
-  async remove(id: number, user: GetUserDto) {
+  async remove(id: number, _user: GetUserDto) {
     const old = await this.findOne(id).catch(throwNotFound);
     await this.userTeamMembershipsRepository.remove(old);
     return undefined;

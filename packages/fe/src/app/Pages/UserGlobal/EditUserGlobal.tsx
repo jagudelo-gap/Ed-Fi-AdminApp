@@ -14,9 +14,9 @@ import { GetUserDto, PutUserDto, RoleType } from '@edanalytics/models';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
-import { roleQueries, teamQueries, userQueries } from '../../api';
+import { roleQueries, userQueries } from '../../api';
 import { SelectRole } from '../../helpers';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 import { useRef } from 'react';
@@ -183,7 +183,7 @@ export const EditUserGlobal = (props: { user: GetUserDto }) => {
               type="submit"
               onClick={(e) => {
                 e.preventDefault();
-                props.onClick && props.onClick(e);
+                props.onClick?.(e);
               }}
             >
               Save

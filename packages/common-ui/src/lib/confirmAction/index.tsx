@@ -41,7 +41,7 @@ export const useConfirmAction = (
   } = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const onClick = async () => {
-    action && action();
+    await action?.();
     onClose();
   };
 

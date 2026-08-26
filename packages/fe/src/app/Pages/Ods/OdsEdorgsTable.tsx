@@ -1,7 +1,7 @@
 import { SbaaTableAllInOne } from '@edanalytics/common-ui';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { edorgQueries, odsQueries } from '../../api';
 import {
   getRelationDisplayName,

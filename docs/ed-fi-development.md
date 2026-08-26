@@ -14,6 +14,14 @@ Two differences to highlight:
 
 Use the [compose/readme.md](../compose/readme.md) to start the main services, using the `.\start-local-dev.ps1` command.
 
+> [!NOTE]
+> The `odsV7-*-db-ods` containers are built locally and restore ODS data from
+> your own `.sql` backup files on first run. Before starting services for the
+> first time, see
+> [compose/readme.md#ods-database-image-composedb-ods](../compose/readme.md#ods-database-image-composedb-ods)
+> to configure `SQL_BACKUPS_FOLDER` and provide `EdFi.Ods.Minimal.Template.sql`
+> / `EdFi.Ods.Populated.Template.sql`.
+
 Once you have the services running, the Keycloak client `edfiadminapp-dev` will be created automatically during the Keycloak setup process. For details, see [compose/readme.md#setup-keycloak](../compose/readme.md#setup-keycloak).
 
 ### Setup Local Configuration for Admin App
@@ -75,6 +83,13 @@ It is also easy to test / fix a specific file, for example:
 npx prettier compose/readme.md
 npx prettier --write compose/readme.md
 ```
+
+### Pre-commit ESLint hook (Husky)
+
+This repo uses `husky` to run a pre-commit hook (`.husky/pre-commit`) that invokes `lint-staged`. `lint-staged` runs `eslint --max-warnings 0` against staged `.ts`/`.tsx`/`.js`/`.jsx` files (config in `package.json`'s `lint-staged` field), so a commit is blocked if any staged file has ESLint errors or warnings.
+
+- Run `npm run lint:check` locally before committing to catch issues early.
+- Fix the reported lint errors/warnings rather than bypassing the hook with `git commit --no-verify`.
 
 ## Troubleshooting
 

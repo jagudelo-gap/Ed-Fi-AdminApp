@@ -2,8 +2,7 @@ import { Button } from '@chakra-ui/react';
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetRoleDto } from '@edanalytics/models';
 import { isExplicitStatusResponse } from '@edanalytics/utils';
-import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { roleQueries } from '../../api';
 import { globalRoleAuthConfig, useAuthorize } from '../../helpers';
@@ -15,7 +14,6 @@ export const useRoleGlobalActions = (role: GetRoleDto | undefined): ActionsType 
   const deleteRole = roleQueries.delete({});
   const deleteRoleForce = roleQueries.deleteForce({});
   const popBanner = usePopBanner();
-  const queryClient = useQueryClient();
 
   const canView = useAuthorize(globalRoleAuthConfig(role?.id, 'role:read'));
 

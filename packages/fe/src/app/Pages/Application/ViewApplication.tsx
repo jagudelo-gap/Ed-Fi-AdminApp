@@ -5,16 +5,12 @@ import {
   ContentSection,
 } from '@edanalytics/common-ui';
 import { GetApplicationDto, GetEdorgDto, edorgCompositeKey } from '@edanalytics/models';
-import { useParams } from 'react-router-dom';
-import { claimsetQueriesV1, edorgQueries, edfiTenantQueries, vendorQueriesV1 } from '../../api';
+import { claimsetQueriesV1, edorgQueries, vendorQueriesV1 } from '../../api';
 import { ClaimsetLinkV1, EdorgLink, VendorLinkV1 } from '../../routes';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';
 import { useQuery } from '@tanstack/react-query';
 
 export const ViewApplication = ({ application }: { application: GetApplicationDto }) => {
-  const params = useParams() as {
-    applicationId: string;
-  };
   const { teamId, edfiTenant } = useTeamEdfiTenantNavContextLoaded();
 
   const edorgs = useQuery(

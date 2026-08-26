@@ -1,8 +1,8 @@
 import { Box, HStack } from '@chakra-ui/react';
-import { Meta } from '@storybook/react';
+import { Meta } from '@storybook/react-vite';
 import { ColumnFiltersState, RowData, SortingState, Table } from '@tanstack/react-table';
-import React, { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React from 'react';
+import { useSearchParams } from 'react-router';
 import {
   SbaaTable,
   SbaaTableAdvancedButton,
@@ -11,15 +11,9 @@ import {
   SbaaTableProviderServerSide,
   SbaaTableSearch,
 } from '.';
-import {
-  getColumnFilterParam,
-  getPaginationParams,
-  getSortParams,
-  setColumnFilterParam,
-} from '../dataTable';
+import { getColumnFilterParam, getPaginationParams, getSortParams } from '../dataTable';
 import { Person, makeData } from '../dataTable/storybook-helpers/helpers';
 import { SbaaTableProvider } from './SbaaTableProvider';
-import sortBy from 'lodash/sortBy';
 
 const meta: Meta<typeof SbaaTableProvider> = {
   title: 'SbaaTable-ServerSide',

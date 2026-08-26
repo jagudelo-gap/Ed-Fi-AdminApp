@@ -1,4 +1,4 @@
-import { RouteObject } from 'react-router-dom';
+import { RouteObject } from 'react-router';
 import { OneIntegrationAppPage } from '../Pages/IntegrationApp/OneIntegrationAppPage';
 import { IntegrationAppBreadcrumb } from '../Pages/IntegrationApp/IntegrationAppBreadcrumb';
 import { routeDefinitions } from './paths';

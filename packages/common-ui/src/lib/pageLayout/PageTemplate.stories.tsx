@@ -1,6 +1,6 @@
 import { PageTemplate } from './PageTemplate';
 import { Box } from '@chakra-ui/react';
-import { Meta } from '@storybook/react';
+import { Meta } from '@storybook/react-vite';
 import {
   PageActions,
   Attribute,

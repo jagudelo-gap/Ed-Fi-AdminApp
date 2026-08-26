@@ -24,7 +24,9 @@ import {
 } from '@chakra-ui/react';
 import { Icons } from '@edanalytics/common-ui';
 import { PostSbEnvironmentDto, PostSbEnvironmentTenantDTO } from '@edanalytics/models';
-import { FieldErrors, UseFormGetValues, UseFormRegister, UseFormSetValue, UseFormClearErrors } from 'react-hook-form';
+import { FieldErrors, UseFormGetValues, UseFormRegister, UseFormSetValue, UseFormClearErrors, UseFormSetError } from 'react-hook-form';
+
+const ED_ORG_PATTERN = /^\s*\d+(\s*,\s*\d+)*\s*$/;
 
 interface TenantManagementSectionProps {
   isMultitenant: boolean;
@@ -34,6 +36,7 @@ interface TenantManagementSectionProps {
   getValues: UseFormGetValues<PostSbEnvironmentDto>;
   errors: FieldErrors<PostSbEnvironmentDto>;
   clearErrors: UseFormClearErrors<PostSbEnvironmentDto>;
+  setError: UseFormSetError<PostSbEnvironmentDto>;
 }
 
 export const TenantManagementSection = ({
@@ -44,6 +47,7 @@ export const TenantManagementSection = ({
   getValues,
   errors,
   clearErrors,
+  setError,
 }: TenantManagementSectionProps) => {
   if (isMultitenant) {
     // Multi-tenant mode
@@ -218,11 +222,15 @@ export const TenantManagementSection = ({
                                               {...register(`tenants.${index}.odss.${odsIndex}.name`)}
                                               onChange={(e) => {
                                                 const currentTenants = getValues('tenants') || [];
-                                                const updatedTenants = [...currentTenants];
-                                                if (updatedTenants[index]?.odss?.[odsIndex]) {
-                                                  updatedTenants[index].odss[odsIndex].name = e.target.value;
+                                                setValue('tenants', currentTenants.map((t, i) =>
+                                                  i === index
+                                                    ? { ...t, odss: (t.odss ?? []).map((o, j) => j === odsIndex ? { ...o, name: e.target.value } : o) }
+                                                    : t
+                                                ));
+                                                if (e.target.value.trim()) {
+                                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                  clearErrors(`tenants.${index}.odss.${odsIndex}.name` as any);
                                                 }
-                                                setValue('tenants', updatedTenants);
                                               }}
                                               placeholder="ODS name"
                                               size="sm"
@@ -237,11 +245,15 @@ export const TenantManagementSection = ({
                                               {...register(`tenants.${index}.odss.${odsIndex}.dbName`)}
                                               onChange={(e) => {
                                                 const currentTenants = getValues('tenants') || [];
-                                                const updatedTenants = [...currentTenants];
-                                                if (updatedTenants[index]?.odss?.[odsIndex]) {
-                                                  updatedTenants[index].odss[odsIndex].dbName = e.target.value;
+                                                setValue('tenants', currentTenants.map((t, i) =>
+                                                  i === index
+                                                    ? { ...t, odss: (t.odss ?? []).map((o, j) => j === odsIndex ? { ...o, dbName: e.target.value } : o) }
+                                                    : t
+                                                ));
+                                                if (e.target.value.trim()) {
+                                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                  clearErrors(`tenants.${index}.odss.${odsIndex}.dbName` as any);
                                                 }
-                                                setValue('tenants', updatedTenants);
                                               }}
                                               placeholder="DB name"
                                               size="sm"
@@ -256,11 +268,21 @@ export const TenantManagementSection = ({
                                               {...register(`tenants.${index}.odss.${odsIndex}.allowedEdOrgs`)}
                                               onChange={(e) => {
                                                 const currentTenants = getValues('tenants') || [];
-                                                const updatedTenants = [...currentTenants];
-                                                if (updatedTenants[index]?.odss?.[odsIndex]) {
-                                                  updatedTenants[index].odss[odsIndex].allowedEdOrgs = e.target.value;
+                                                setValue('tenants', currentTenants.map((t, i) =>
+                                                  i === index
+                                                    ? { ...t, odss: (t.odss ?? []).map((o, j) => j === odsIndex ? { ...o, allowedEdOrgs: e.target.value } : o) }
+                                                    : t
+                                                ));
+                                                const val = e.target.value;
+                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                const fieldPath = `tenants.${index}.odss.${odsIndex}.allowedEdOrgs` as any;
+                                                if (!val || val.trim() === '') {
+                                                  setError(fieldPath, { type: 'required', message: 'Education Organization Identifier(s) is required' });
+                                                } else if (!ED_ORG_PATTERN.test(val)) {
+                                                  setError(fieldPath, { type: 'pattern', message: 'Education Organization Identifier(s) must be numbers separated by commas (e.g., "1, 255901, 25590100")' });
+                                                } else {
+                                                  clearErrors(fieldPath);
                                                 }
-                                                setValue('tenants', updatedTenants);
                                               }}
                                               placeholder="1, 255901, 25590100"
                                               size="sm"
@@ -330,21 +352,23 @@ export const TenantManagementSection = ({
                   }]);
                 }
                 const updatedTenants = [...currentTenants];
-                const defaultTenant = updatedTenants[0] || { name: 'default', odss: [] };
-                if (!defaultTenant.odss) {
-                  defaultTenant.odss = [];
-                }
-                // Find the max id currently in use and increment by 1 for the new ODS instance
-                const currentOdss = defaultTenant.odss;
+                const existingTenant = updatedTenants[0] || { name: 'default', odss: [] };
+                const currentOdss = existingTenant.odss ?? [];
                 const idArray = currentOdss.map(o => typeof o.id === 'number' ? o.id : 0);
                 const maxId = idArray.length > 0 ? Math.max(...idArray) : 0;
-                defaultTenant.odss.push({
-                  id: maxId + 1,
-                  name: `ODS ${maxId + 1}`,
-                  dbName: `ODS_${maxId + 1}`,
-                  allowedEdOrgs: '',
-                });
-                updatedTenants[0] = defaultTenant;
+                // Find the max id currently in use and increment by 1 for the new ODS instance
+                updatedTenants[0] = {
+                  ...existingTenant,
+                  odss: [
+                    ...currentOdss,
+                    {
+                      id: maxId + 1,
+                      name: `ODS ${maxId + 1}`,
+                      dbName: `ODS_${maxId + 1}`,
+                      allowedEdOrgs: '',
+                    },
+                  ],
+                };
                 setValue('tenants', updatedTenants);
                 // Clear validation errors for the default tenant's ODS instances
                 clearErrors('tenants.0.odss');
@@ -387,14 +411,20 @@ export const TenantManagementSection = ({
                         <FormControl isInvalid={!!errors.tenants?.[0]?.odss?.[odsIndex]?.name}>
                           <Input
                             value={ods.name}
-                            {...register(`tenants.0.odss.${odsIndex}.name`)}
                             onChange={(e) => {
                               const currentTenants = getValues('tenants') || [];
                               const updatedTenants = [...currentTenants];
-                              if (updatedTenants[0]?.odss?.[odsIndex]) {
-                                updatedTenants[0].odss[odsIndex].name = e.target.value;
-                              }
+                              updatedTenants[0] = {
+                                ...updatedTenants[0],
+                                odss: (updatedTenants[0].odss ?? []).map((o, i) =>
+                                  i === odsIndex ? { ...o, name: e.target.value } : o
+                                ),
+                              };
                               setValue('tenants', updatedTenants);
+                              if (e.target.value.trim()) {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                clearErrors(`tenants.0.odss.${odsIndex}.name` as any);
+                              }
                             }}
                             placeholder="ODS name"
                             size="sm"
@@ -406,14 +436,20 @@ export const TenantManagementSection = ({
                         <FormControl isInvalid={!!errors.tenants?.[0]?.odss?.[odsIndex]?.dbName}>
                           <Input
                             value={ods.dbName}
-                            {...register(`tenants.0.odss.${odsIndex}.dbName`)}
                             onChange={(e) => {
                               const currentTenants = getValues('tenants') || [];
                               const updatedTenants = [...currentTenants];
-                              if (updatedTenants[0]?.odss?.[odsIndex]) {
-                                updatedTenants[0].odss[odsIndex].dbName = e.target.value;
-                              }
+                              updatedTenants[0] = {
+                                ...updatedTenants[0],
+                                odss: (updatedTenants[0].odss ?? []).map((o, i) =>
+                                  i === odsIndex ? { ...o, dbName: e.target.value } : o
+                                ),
+                              };
                               setValue('tenants', updatedTenants);
+                              if (e.target.value.trim()) {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                clearErrors(`tenants.0.odss.${odsIndex}.dbName` as any);
+                              }
                             }}
                             placeholder="DB name"
                             size="sm"
@@ -425,14 +461,26 @@ export const TenantManagementSection = ({
                         <FormControl isInvalid={!!errors.tenants?.[0]?.odss?.[odsIndex]?.allowedEdOrgs}>
                           <Input
                             value={ods.allowedEdOrgs}
-                            {...register(`tenants.0.odss.${odsIndex}.allowedEdOrgs`)}
                             onChange={(e) => {
                               const currentTenants = getValues('tenants') || [];
                               const updatedTenants = [...currentTenants];
-                              if (updatedTenants[0]?.odss?.[odsIndex]) {
-                                updatedTenants[0].odss[odsIndex].allowedEdOrgs = e.target.value;
-                              }
+                              updatedTenants[0] = {
+                                ...updatedTenants[0],
+                                odss: (updatedTenants[0].odss ?? []).map((o, i) =>
+                                  i === odsIndex ? { ...o, allowedEdOrgs: e.target.value } : o
+                                ),
+                              };
                               setValue('tenants', updatedTenants);
+                              const val = e.target.value;
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              const fieldPath = `tenants.0.odss.${odsIndex}.allowedEdOrgs` as any;
+                              if (!val || val.trim() === '') {
+                                setError(fieldPath, { type: 'required', message: 'Education Organization Identifier(s) is required' });
+                              } else if (!ED_ORG_PATTERN.test(val)) {
+                                setError(fieldPath, { type: 'pattern', message: 'Education Organization Identifier(s) must be numbers separated by commas (e.g., "1, 255901, 25590100")' });
+                              } else {
+                                clearErrors(fieldPath);
+                              }
                             }}
                             placeholder="1, 255901, 25590100"
                             size="sm"
@@ -448,9 +496,12 @@ export const TenantManagementSection = ({
                           onClick={() => {
                             const currentTenants = getValues('tenants') || [];
                             const updatedTenants = [...currentTenants];
-                            if (updatedTenants[0]?.odss) {
-                              updatedTenants[0].odss.splice(odsIndex, 1);
-                            }
+                            updatedTenants[0] = {
+                              ...updatedTenants[0],
+                              odss: (updatedTenants[0]?.odss ?? []).filter(
+                                (_, i) => i !== odsIndex
+                              ),
+                            };
                             setValue('tenants', updatedTenants);
                             // Clear validation errors specific to the default tenant's ODS instances
                             clearErrors('tenants.0.odss');

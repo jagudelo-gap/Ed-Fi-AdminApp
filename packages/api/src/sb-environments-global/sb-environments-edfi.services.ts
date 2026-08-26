@@ -1,13 +1,13 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import {
   determineTenantModeFromMetadata,
-  determineVersionFromMetadata,
   fetchOdsApiMetadata,
   validateAdminApiUrl,
+  validateTenantModeCompatibility,
   ValidationHttpException,
 } from '../utils';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { addUserCreating, EdfiTenant, SbEnvironment, Edorg, Ods } from '@edanalytics/models-server';
+import { addUserCreating, EdfiTenant, SbEnvironment, Edorg, Ods, SbSyncQueue } from '@edanalytics/models-server';
 import { EntityManager, Repository } from 'typeorm';
 import {
   StartingBlocksServiceV1,
@@ -18,18 +18,19 @@ import {
   PutSbEnvironmentDto,
   SbV1MetaOds,
   EdorgType,
-  SbV2MetaEnv,
   SbV2MetaOds,
   PostSbEnvironmentTenantDTO,
   GetUserDto,
   ISbEnvironmentConfigPublicV2,
+  toSbSyncQueueDto,
 } from '@edanalytics/models';
 import axios from 'axios';
 import { persistSyncTenant, SyncableOds } from '../sb-sync/sync-ods';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
+import { IJobQueueService } from '../sb-sync/job-queue/job-queue.interface';
+import { AdminApiVersionStrategyFactory } from '../admin-api-version-strategy';
 
 type TenantCredentials = { clientId: string; clientSecret: string; displayName: string };
-type TenantCredentialsMap = Map<string, TenantCredentials>;
 
 @Injectable()
 export class SbEnvironmentsEdFiService {
@@ -43,7 +44,12 @@ export class SbEnvironmentsEdFiService {
     @InjectRepository(EdfiTenant)
     private edfiTenantsRepository: Repository<EdfiTenant>,
     @InjectEntityManager()
-    private readonly entityManager: EntityManager
+    private readonly entityManager: EntityManager,
+    @Inject('IJobQueueService')
+    private readonly jobQueue: IJobQueueService,
+    @InjectRepository(SbSyncQueue)
+    private readonly queueRepository: Repository<SbSyncQueue>,
+    private readonly strategyFactory: AdminApiVersionStrategyFactory
   ) {}
 
   private errorMessageEnhancer(originalMessage: string): string {
@@ -142,8 +148,10 @@ export class SbEnvironmentsEdFiService {
 
   async create(createSbEnvironmentDto: PostSbEnvironmentDto, user: GetUserDto | undefined) {
     // First validate the Admin API URL before proceeding with any operations
+    // validateAdminApiUrl returns the fetched Admin API metadata to avoid duplicate network calls
+    let adminApiInfo;
     if (createSbEnvironmentDto.adminApiUrl) {
-      await validateAdminApiUrl(createSbEnvironmentDto.adminApiUrl, createSbEnvironmentDto.odsApiDiscoveryUrl);
+      adminApiInfo = await validateAdminApiUrl(createSbEnvironmentDto.adminApiUrl, createSbEnvironmentDto.odsApiDiscoveryUrl);
     }
 
     // Validate ODS Discovery URL if provided
@@ -159,17 +167,40 @@ export class SbEnvironmentsEdFiService {
           // Fetch ODS API metadata
           odsApiMetaResponse = await fetchOdsApiMetadata(createSbEnvironmentDto);
 
-          // Auto-detect version from metadata
-          detectedVersion = determineVersionFromMetadata(odsApiMetaResponse);
+          if (!adminApiInfo?.specificationVersion) {
+            throw new ValidationHttpException({
+              field: 'adminApiUrl',
+              message: 'Management API Discovery URL is required to determine API version.',
+            });
+          }
+
+          detectedVersion = adminApiInfo.specificationVersion;
 
           // Override the version with detected version
           createSbEnvironmentDto.version = detectedVersion;
 
-          // Determine tenant mode
-          tenantMode = determineTenantModeFromMetadata(odsApiMetaResponse);
+          // Determine tenant mode - pass both ODS and Admin API info, function prioritizes Admin API field
+          tenantMode = determineTenantModeFromMetadata(odsApiMetaResponse, adminApiInfo);
           createSbEnvironmentDto.isMultitenant = tenantMode === 'MultiTenant';
 
+          // Validate tenant mode compatibility if both APIs are available
+          if (adminApiInfo) {
+            // Only validate if Admin API explicitly defines multitenantMode
+            if (adminApiInfo?.tenancy?.multitenantMode !== undefined) {
+              const odsTenantMode = determineTenantModeFromMetadata(odsApiMetaResponse);
+              const adminTenantMode = adminApiInfo.tenancy.multitenantMode ? 'MultiTenant' : 'SingleTenant';
+              validateTenantModeCompatibility(odsTenantMode, adminTenantMode);
+            } else {
+              this.logger.log('Admin API does not provide multitenantMode field, skipping tenant mode compatibility check');
+            }
+          }
+
         } catch (metadataError) {
+          // Re-throw validation exceptions without wrapping (e.g., tenant mode compatibility errors)
+          if (metadataError instanceof ValidationHttpException) {
+            throw metadataError;
+          }
+
           // Handle ODS Discovery URL specific errors
           this.logger.error('ODS metadata fetch error:', metadataError);
 
@@ -179,45 +210,14 @@ export class SbEnvironmentsEdFiService {
           });
         }
 
-        // Validate tenants and create credentials for multi-tenant v2 environments
-        let tenantCredentialsMap: TenantCredentialsMap | undefined;
-        if (createSbEnvironmentDto.isMultitenant && createSbEnvironmentDto.version === 'v2') {
-          tenantCredentialsMap = await this.validateTenantsAndCreateCredentials(createSbEnvironmentDto);
-        }
 
-        // Replace the current configPublic logic with this:
-        const configPublic =
-          createSbEnvironmentDto.version === 'v1'
-            ? {
-                startingBlocks: createSbEnvironmentDto.startingBlocks,
-                odsApiMeta: odsApiMetaResponse,
-                adminApiUrl: createSbEnvironmentDto.adminApiUrl,
-                version: createSbEnvironmentDto.version,
-                values: {
-                  edfiHostname: createSbEnvironmentDto.odsApiDiscoveryUrl,
-                  adminApiUrl: createSbEnvironmentDto.adminApiUrl,
-                },
-              }
-            : {
-                startingBlocks: createSbEnvironmentDto.startingBlocks,
-                odsApiMeta: odsApiMetaResponse,
-                adminApiUrl: createSbEnvironmentDto.adminApiUrl,
-                version: createSbEnvironmentDto.version,
-                values: {
-                  meta: {
-                    envlabel: createSbEnvironmentDto.environmentLabel,
-                    mode: tenantMode,
-                    domainName: createSbEnvironmentDto.odsApiDiscoveryUrl,
-                    adminApiUrl: createSbEnvironmentDto.adminApiUrl,
-                    tenantManagementFunctionArn: '',
-                    tenantResourceTreeFunctionArn: '',
-                    odsManagementFunctionArn: '',
-                    edorgManagementFunctionArn: '',
-                    dataFreshnessFunctionArn: '',
-                  } satisfies SbV2MetaEnv,
-                  adminApiUuid: randomUUID(),
-                },
-              };
+        // Build configPublic based on detected version
+        const strategy = this.strategyFactory.getStrategy(createSbEnvironmentDto.version);
+        const configPublic = strategy.buildConfigPublic({
+          createSbEnvironmentDto,
+          odsApiMetaResponse,
+          tenantMode,
+        });
         Logger.log(
           `Auto-detected API version: ${detectedVersion} from ODS version: ${odsApiMetaResponse.version}`
         );
@@ -231,196 +231,16 @@ export class SbEnvironmentsEdFiService {
             user
           )
         );
-        if (createSbEnvironmentDto.version === 'v1') {
-          await this.syncv1Environment(sbEnvironment, createSbEnvironmentDto);
-        } else if (createSbEnvironmentDto.version === 'v2') {
-          // For v2, we need to investigate if applies the same process
-          await this.syncv2Environment(sbEnvironment, createSbEnvironmentDto, tenantCredentialsMap);
-        }
 
+        const dispatchResult = await strategy.dispatchSync(sbEnvironment, createSbEnvironmentDto);
+        if (dispatchResult.kind === 'queued') {
+          return { ...sbEnvironment, syncQueue: toSbSyncQueueDto(dispatchResult.syncQueue) };
+        }
         return sbEnvironment;
       } catch (error) {
         this.handleOperationError(error, createSbEnvironmentDto.version);
       }
     }
-  }
-
-  private async syncv1Environment(
-    sbEnvironment: SbEnvironment,
-    createSbEnvironmentDto: PostSbEnvironmentDto
-  ) {
-    // For v1, use the first tenant from the frontend data
-    if (!createSbEnvironmentDto.tenants || createSbEnvironmentDto.tenants.length === 0) {
-      throw new ValidationHttpException({
-        field: 'tenants',
-        message: 'At least one tenant is required for v1 deployment',
-      });
-    }
-
-    const defaultTenantDto = createSbEnvironmentDto.tenants[0];
-
-    // Find or create the default tenant
-    const edfiTenant = await this.findOrCreateTenant(sbEnvironment, defaultTenantDto.name);
-
-    // Sync the tenant data using V1 method
-    await this.syncTenantDataV1(defaultTenantDto, edfiTenant);
-
-    // Make a POST request to register the client
-    const { clientId, clientSecret } = await this.createClientCredentials(createSbEnvironmentDto);
-
-    // Save the admin API credentials
-    const credentials = {
-      ClientId: clientId,
-      ClientSecret: clientSecret,
-      url: createSbEnvironmentDto.adminApiUrl,
-    };
-    await this.startingBlocksServiceV1.saveAdminApiCredentials(sbEnvironment, credentials);
-
-    return { status: 'SUCCESS' as const };
-  }
-
-  private async syncv2Environment(
-    sbEnvironment: SbEnvironment,
-    createSbEnvironmentDto: PostSbEnvironmentDto,
-    tenantCredentialsMap?: TenantCredentialsMap
-  ) {
-    if (createSbEnvironmentDto.isMultitenant) {
-      return await this.syncMultiTenantEnvironment(sbEnvironment, createSbEnvironmentDto, tenantCredentialsMap);
-    } else {
-      return await this.syncSingleTenantEnvironment(sbEnvironment, createSbEnvironmentDto);
-    }
-  }
-
-  private async syncMultiTenantEnvironment(
-    sbEnvironment: SbEnvironment,
-    createSbEnvironmentDto: PostSbEnvironmentDto,
-    tenantCredentialsMap?: TenantCredentialsMap
-  ) {
-    if (!createSbEnvironmentDto.tenants || createSbEnvironmentDto.tenants.length === 0) {
-      throw new ValidationHttpException({
-        field: 'tenants',
-        message: 'At least one tenant is required for multi-tenant deployment',
-      });
-    }
-
-    for (const tenant of createSbEnvironmentDto.tenants) {
-      await this.createAndSyncTenant(sbEnvironment, createSbEnvironmentDto, tenant, tenantCredentialsMap);
-    }
-
-    return { status: 'SUCCESS' as const };
-  }
-
-  private async syncSingleTenantEnvironment(
-    sbEnvironment: SbEnvironment,
-    createSbEnvironmentDto: PostSbEnvironmentDto
-  ) {
-    // For single-tenant, use the first tenant from the frontend data
-    if (!createSbEnvironmentDto.tenants || createSbEnvironmentDto.tenants.length === 0) {
-      throw new ValidationHttpException({
-        field: 'tenants',
-        message: 'At least one tenant is required for single-tenant deployment',
-      });
-    }
-
-    const defaultTenantDto = createSbEnvironmentDto.tenants[0];
-
-    // Find or create the default tenant
-    const edfiTenant = await this.findOrCreateTenant(sbEnvironment, defaultTenantDto.name);
-
-    // Sync the tenant data
-    await this.syncTenantData(sbEnvironment, createSbEnvironmentDto, defaultTenantDto, edfiTenant);
-
-    return { status: 'SUCCESS' as const };
-  }
-
-  private async createAndSyncTenant(
-    sbEnvironment: SbEnvironment,
-    createSbEnvironmentDto: PostSbEnvironmentDto,
-    tenantDto: PostSbEnvironmentTenantDTO,
-    tenantCredentialsMap?: TenantCredentialsMap
-  ) {
-    // Create the tenant in the local database
-    const tenantEntity = await this.edfiTenantsRepository.save({
-      name: tenantDto.name,
-      sbEnvironmentId: sbEnvironment.id,
-    });
-
-    await this.syncTenantData(sbEnvironment, createSbEnvironmentDto, tenantDto, tenantEntity, tenantCredentialsMap);
-  }
-
-  private async findOrCreateTenant(
-    sbEnvironment: SbEnvironment,
-    tenantName: string
-  ): Promise<EdfiTenant> {
-    const existingTenants = await this.edfiTenantsRepository.find({
-      where: { sbEnvironmentId: sbEnvironment.id },
-    });
-
-    if (existingTenants.length === 0) {
-      return await this.edfiTenantsRepository.save({
-        name: tenantName,
-        sbEnvironmentId: sbEnvironment.id,
-      });
-    }
-
-    return existingTenants[0];
-  }
-
-  private async syncTenantData(
-    sbEnvironment: SbEnvironment,
-    createSbEnvironmentDto: PostSbEnvironmentDto,
-    tenantDto: PostSbEnvironmentTenantDTO,
-    tenantEntity: EdfiTenant,
-    tenantCredentialsMap?: TenantCredentialsMap
-  ) {
-    // Create ODS metadata objects
-    const metaOds: SbV2MetaOds[] = this.createODSObject(tenantDto);
-
-    // Sync ODS and EdOrgs
-    await this.saveSyncableOds(metaOds, tenantEntity);
-
-    // Create Admin API credentials - use cached credentials if available
-    await this.createAdminAPICredentialsV2(createSbEnvironmentDto, tenantEntity, sbEnvironment, tenantCredentialsMap);
-  }
-
-  private async syncTenantDataV1(tenantDto: PostSbEnvironmentTenantDTO, tenantEntity: EdfiTenant) {
-    // Create V1 ODS metadata objects
-    const metaOds: SbV1MetaOds[] = this.createODSObjectV1(tenantDto);
-
-    // Sync ODS and EdOrgs using V1 method
-    await this.saveSyncableOdsV1(metaOds, tenantEntity);
-  }
-
-  private async createAdminAPICredentialsV2(
-    createSbEnvironmentDto: PostSbEnvironmentDto,
-    tenantEntity: { name: string; sbEnvironmentId: number } & EdfiTenant,
-    sbEnvironment: SbEnvironment,
-    tenantCredentialsMap?: TenantCredentialsMap
-  ) {
-    let clientId: string;
-    let clientSecret: string;
-
-    // Use cached credentials if available, otherwise create new ones
-    if (tenantCredentialsMap && tenantCredentialsMap.has(tenantEntity.name)) {
-      const cachedCredentials = tenantCredentialsMap.get(tenantEntity.name);
-      clientId = cachedCredentials.clientId;
-      clientSecret = cachedCredentials.clientSecret;
-      this.logger.log(`Using cached credentials for tenant: ${tenantEntity.name}`);
-    } else {
-      // Fallback to creating new credentials (for single-tenant or when cache is not available)
-      const credentials = await this.createClientCredentials(
-        createSbEnvironmentDto,
-        tenantEntity.name
-      );
-      clientId = credentials.clientId;
-      clientSecret = credentials.clientSecret;
-    }
-
-    await this.startingBlocksServiceV2.saveAdminApiCredentials(tenantEntity, sbEnvironment, {
-      ClientId: clientId,
-      ClientSecret: clientSecret,
-      url: createSbEnvironmentDto.adminApiUrl,
-    });
   }
 
   private createODSObject(tenant: PostSbEnvironmentTenantDTO): SbV2MetaOds[] {
@@ -448,6 +268,8 @@ export class SbEnvironmentsEdFiService {
   private createODSObjectV1(tenant: PostSbEnvironmentTenantDTO): SbV1MetaOds[] {
     return (
       tenant.odss?.map((ods) => ({
+        id: ods.id,
+        name: ods.name,
         dbname: ods.dbName,
         edorgs: ods.allowedEdOrgs
           ?.split(',')
@@ -486,8 +308,8 @@ export class SbEnvironmentsEdFiService {
   ) {
     const odss = (metaOds ?? []).map(
       (o): SyncableOds => ({
-        id: null, // V1 doesn't have id
-        name: o.dbname, // Use dbname as name for V1
+        id: o.id ?? null,
+        name: o.name ?? o.dbname,
         dbName: o.dbname,
         edorgs: o.edorgs,
       })
@@ -498,69 +320,28 @@ export class SbEnvironmentsEdFiService {
     );
   }
 
-  private async validateTenantsAndCreateCredentials(
-    createSbEnvironmentDto: PostSbEnvironmentDto
-  ): Promise<TenantCredentialsMap> {
-    const credentialsMap = new Map<string, TenantCredentials>();
-    const failedTenants: string[] = [];
-
-    if (!createSbEnvironmentDto.tenants || createSbEnvironmentDto.tenants.length === 0) {
-      throw new ValidationHttpException({
-        field: 'tenants',
-        message: 'At least one tenant is required for multi-tenant deployment',
-      });
-    }
-
-    // Validate all tenants by creating credentials for each
-    for (const tenant of createSbEnvironmentDto.tenants) {
-      try {
-        const credentials = await this.createClientCredentials(createSbEnvironmentDto, tenant.name);
-        credentialsMap.set(tenant.name, credentials);
-        this.logger.log(`Successfully validated tenant: ${tenant.name}`);
-      } catch (error) {
-        this.logger.error(`Failed to validate tenant: ${tenant.name}`, error);
-        failedTenants.push(tenant.name);
-      }
-    }
-
-    // If any tenants failed, throw an error with all failed tenant names
-    if (failedTenants.length > 0) {
-      const failedTenantList = failedTenants.join(', ');
-      throw new ValidationHttpException({
-        field: 'tenants',
-        message: `The following tenant(s) do not exist or are not properly configured in the Admin API: ${failedTenantList}`,
-      });
-    }
-
-    return credentialsMap;
-  }
-
   private async createClientCredentials(
     createSbEnvironmentDto: PostSbEnvironmentDto,
     tenant?: string
   ): Promise<TenantCredentials> {
     const registerUrl = `${createSbEnvironmentDto.adminApiUrl}/connect/register`;
-    const clientSecret = Array.from({ length: 32 }, () =>
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'.charAt(
-        Math.floor(Math.random() * 70)
-      )
+    const secretCharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    const secretBytes = randomBytes(32);
+    const clientSecret = Array.from(secretBytes, (byte) => secretCharset[byte % secretCharset.length]).join('');
+    const clientId = `client_${randomUUID()}`;
+    const nameSuffixBytes = randomBytes(4);
+    const displayNameSuffix = Array.from(nameSuffixBytes, (byte) =>
+      (byte % 36).toString(36)
     ).join('');
-    const clientId = `client_${Math.random().toString(36).substring(2, 15)}`;
-    const displayName = `AdminApp-v4-${Math.random().toString(36).substring(2, 8)}`;
+    const displayName = `AdminApp-v4-${displayNameSuffix}`;
     const formData = new URLSearchParams();
     formData.append('ClientId', clientId);
     formData.append('ClientSecret', clientSecret);
     formData.append('DisplayName', displayName);
 
-    const headers =
-      createSbEnvironmentDto.isMultitenant && createSbEnvironmentDto.version === 'v2'
-        ? {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            tenant: tenant,
-          }
-        : {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          };
+    const strategy = this.strategyFactory.getStrategy(createSbEnvironmentDto.version);
+    const headers = strategy.getRegistrationHeaders(!!createSbEnvironmentDto.isMultitenant, tenant);
+
     try {
       const registerResponse = await axios.post(registerUrl, formData.toString(), {
         headers: headers,
@@ -573,15 +354,15 @@ export class SbEnvironmentsEdFiService {
     } catch (error) {
       this.logger.error('Failed to register client credentials:', error);
 
-      // For multi-tenant v2 with tenant header, assume 400 errors are wrong tenant names
-      if (createSbEnvironmentDto.isMultitenant && createSbEnvironmentDto.version === 'v2' && tenant && error.response?.status === 400) {
+      // A tenant header means this is a multi-tenant registration; a 400 there almost
+      // always means the tenant name doesn't exist/isn't configured.
+      if (headers.tenant && error.response?.status === 400) {
         throw new ValidationHttpException({
           field: 'tenants',
           message: `Tenant '${tenant}' does not exist or is not properly configured in the Admin API`,
         });
       }
 
-      // For all other errors, treat as Admin API URL issues
       throw new ValidationHttpException({
         field: 'adminApiUrl',
         message: error.message,
@@ -614,32 +395,24 @@ export class SbEnvironmentsEdFiService {
       }
 
       // Validate tenant credentials if we're updating URLs and the environment is v2 multi-tenant
-      const isV2Environment = existingEnvironment.configPublic?.version === 'v2';
-      const isV1Environment = existingEnvironment.configPublic?.version === 'v1';
+      const existingVersion = existingEnvironment.configPublic?.version;
+      const existingStrategy = existingVersion && ['v1', 'v2', 'v3'].includes(existingVersion)
+        ? this.strategyFactory.getStrategy(existingVersion)
+        : undefined;
       const hasUrlUpdates = updateDto.odsApiDiscoveryUrl || updateDto.adminApiUrl;
-      const isCurrentlyMultiTenant = isV2Environment &&
-        existingEnvironment.configPublic?.values &&
-        'meta' in existingEnvironment.configPublic.values &&
-        existingEnvironment.configPublic.values.meta?.mode === 'MultiTenant';
 
       // Validate that tenant mode changes are not attempted (security check)
       if (updateDto.isMultitenant !== undefined) {
-        let expectedTenantMode: boolean;
-
-        if (isV1Environment) {
-          expectedTenantMode = false; // v1 is always single-tenant
-        } else if (isV2Environment) {
-          expectedTenantMode = isCurrentlyMultiTenant;
-        } else {
-          // Starting Blocks or unknown version - don't allow tenant mode changes
-          expectedTenantMode = false;
-        }
+        const expectedTenantMode = existingStrategy ? existingStrategy.getTenantModeDefault(existingEnvironment) : false;
 
         if (updateDto.isMultitenant !== expectedTenantMode) {
           const currentMode = expectedTenantMode ? 'multi-tenant' : 'single-tenant';
           const attemptedMode = updateDto.isMultitenant ? 'multi-tenant' : 'single-tenant';
-          const versionInfo = isV1Environment ? ' (v1 environments are always single-tenant)' :
-                             isV2Environment ? '' : ' (tenant mode not applicable for this environment type)';
+          const versionInfo = existingStrategy?.version === 'v1'
+            ? ' (v1 environments are always single-tenant)'
+            : !existingStrategy?.supportsMultiTenant
+              ? ' (tenant mode not applicable for this environment type)'
+              : '';
           throw new ValidationHttpException({
             field: 'isMultitenant',
             message: `Tenant mode cannot be changed after creation. Current mode: ${currentMode}, attempted: ${attemptedMode}${versionInfo}`,
@@ -647,84 +420,24 @@ export class SbEnvironmentsEdFiService {
         }
       }
 
-      if (hasUrlUpdates && isV2Environment && isCurrentlyMultiTenant) {
-        this.logger.log(`Validating tenant credentials for v2 multi-tenant environment update. Existing tenants: ${existingEnvironment.edfiTenants?.map(t => t.name).join(', ') || 'none'}`);
+      // Handle credential recreation for v1 environments when Admin API URL changes
+      if (hasUrlUpdates && updateDto.adminApiUrl && existingStrategy?.version === 'v1') {
+        this.logger.log('Admin API URL changed for v1 environment - recreating credentials');
 
-        // Extract current ODS API URL from the environment
-        const currentOdsApiUrl = this.extractOdsApiUrlFromEnvironment(existingEnvironment);
+        const { clientId, clientSecret } = await this.createClientCredentials({
+          adminApiUrl: updateDto.adminApiUrl,
+          isMultitenant: false,
+          version: 'v1'
+        } as PostSbEnvironmentDto);
 
-        // Create a temporary DTO for validation that includes the existing tenants
-        const validationDto: PostSbEnvironmentDto = {
-          name: updateDto.name,
-          adminApiUrl: updateDto.adminApiUrl || existingEnvironment.configPublic?.adminApiUrl || '',
-          odsApiDiscoveryUrl: updateDto.odsApiDiscoveryUrl || currentOdsApiUrl || '',
-          version: 'v2' as const,
-          startingBlocks: false,
-          isMultitenant: isCurrentlyMultiTenant, // Use current mode since mode changes are not allowed
-          tenants: updateDto.tenants || existingEnvironment.edfiTenants?.map(tenant => ({
-            name: tenant.name,
-            odss: tenant.odss?.map(ods => ({
-              id: ods.id,
-              name: ods.odsInstanceName || ods.dbName,
-              dbName: ods.dbName,
-              allowedEdOrgs: ods.edorgs?.map(edorg => edorg.educationOrganizationId).join(', ') || '',
-            })) || [],
-          })) || [],
+        const credentials = {
+          ClientId: clientId,
+          ClientSecret: clientSecret,
+          url: updateDto.adminApiUrl,
         };
 
-        // Validate that all existing tenants are valid in the Admin API
-        try {
-          await this.validateTenantsAndCreateCredentials(validationDto);
-          this.logger.log('Tenant validation passed for update operation');
-        } catch (error) {
-          this.logger.error('Tenant validation failed during update:', error);
-          throw error; // Re-throw the validation error
-        }
-      }
-
-      // Handle credential recreation for single-tenant environments when Admin API URL changes
-      if (hasUrlUpdates && updateDto.adminApiUrl && !isCurrentlyMultiTenant) {
-        this.logger.log(`Admin API URL changed for ${isV1Environment ? 'v1' : 'v2 single-tenant'} environment - recreating credentials`);
-
-        if (isV1Environment) {
-          // For v1 single-tenant: recreate credentials using v1 method
-          const { clientId, clientSecret } = await this.createClientCredentials({
-            adminApiUrl: updateDto.adminApiUrl,
-            isMultitenant: false,
-            version: 'v1'
-          } as PostSbEnvironmentDto);
-
-          const credentials = {
-            ClientId: clientId,
-            ClientSecret: clientSecret,
-            url: updateDto.adminApiUrl,
-          };
-
-          // Save new credentials for v1 environment
-          await this.startingBlocksServiceV1.saveAdminApiCredentials(existingEnvironment, credentials);
-          this.logger.log('V1 credentials recreated successfully');
-
-        } else if (isV2Environment) {
-          // For v2 single-tenant: recreate credentials for the default tenant
-          const defaultTenant = existingEnvironment.edfiTenants?.[0];
-          if (defaultTenant) {
-            const { clientId, clientSecret } = await this.createClientCredentials({
-              adminApiUrl: updateDto.adminApiUrl,
-              isMultitenant: false,
-              version: 'v2'
-            } as PostSbEnvironmentDto);
-
-            // Save new credentials for v2 single-tenant
-            await this.startingBlocksServiceV2.saveAdminApiCredentials(defaultTenant, existingEnvironment, {
-              ClientId: clientId,
-              ClientSecret: clientSecret,
-              url: updateDto.adminApiUrl,
-            });
-            this.logger.log('V2 single-tenant credentials recreated successfully');
-          } else {
-            this.logger.warn('No default tenant found for v2 single-tenant environment');
-          }
-        }
+        await this.startingBlocksServiceV1.saveAdminApiCredentials(existingEnvironment, credentials);
+        this.logger.log('V1 credentials recreated successfully');
       }
 
       // Update basic environment properties
@@ -737,34 +450,11 @@ export class SbEnvironmentsEdFiService {
       };
 
       // Update URL and configuration fields if provided
-      if (updateDto.odsApiDiscoveryUrl !== undefined) {
-        // Update the configPublic to store the new ODS API URL
-        if (isV2Environment) {
-          updatedProperties.configPublic = {
-          ...existingEnvironment.configPublic,
-          values: {
-            ...existingEnvironment.configPublic?.values,
-            ...(typeof existingEnvironment.configPublic?.values === 'object' &&
-              'meta' in existingEnvironment.configPublic.values
-              ? {
-                  meta: {
-                    ...((existingEnvironment.configPublic.values as ISbEnvironmentConfigPublicV2).meta),
-                    domainName: updateDto.odsApiDiscoveryUrl.replace(/^https?:\/\//, ''),
-                  },
-                }
-              : {}),
-          },
-        };
-        }
-        else{
+      if (updateDto.odsApiDiscoveryUrl !== undefined && existingStrategy) {
         updatedProperties.configPublic = {
           ...existingEnvironment.configPublic,
-          values: {
-            ...existingEnvironment.configPublic?.values,
-            edfiHostname: updateDto.odsApiDiscoveryUrl.replace(/^https?:\/\//, ''),
-          },
+          values: existingStrategy.applyOdsUrlUpdate(existingEnvironment.configPublic, updateDto.odsApiDiscoveryUrl),
         };
-      }
       }
 
       if (updateDto.adminApiUrl !== undefined) {
@@ -772,6 +462,20 @@ export class SbEnvironmentsEdFiService {
           ...updatedProperties.configPublic || existingEnvironment.configPublic,
           adminApiUrl: updateDto.adminApiUrl,
         };
+
+        // When the Admin API URL changes on a v2/v3 environment, the stored credentials
+        // are invalid for the new endpoint. Clear them so the pg_boss job's bootstrap
+        // logic re-registers fresh credentials against the new URL.
+        const adminApiUrlChanged = updateDto.adminApiUrl !== existingEnvironment.adminApiUrl;
+        if (existingStrategy?.supportsMultiTenant && adminApiUrlChanged) {
+          this.logger.log(
+            `Admin API URL changed for ${existingStrategy.version} environment ${id} — clearing tenant credentials for re-bootstrap`
+          );
+          if (updatedProperties.configPublic?.values) {
+            (updatedProperties.configPublic.values as ISbEnvironmentConfigPublicV2).tenants = {};
+          }
+          updatedProperties.configPrivate = { tenants: {} };
+        }
       }
 
       if (updateDto.environmentLabel !== undefined) {
@@ -779,17 +483,36 @@ export class SbEnvironmentsEdFiService {
       }
 
       const updatedEnvironment = await this.sbEnvironmentsRepository.save(updatedProperties);
+      let syncQueue;
 
-      // Handle tenant and ODS updates if provided
-      if (updateDto.tenants && Array.isArray(updateDto.tenants)) {
+      // Delegate tenant/ODS/EdOrg sync to the background job — but only when fields that
+      // affect the sync result actually changed. Name-only edits don't require a re-sync
+      // and would add unnecessary latency.
+      const resyncTriggered = existingStrategy?.shouldTriggerResync(!!hasUrlUpdates) ?? false;
+      if (resyncTriggered && existingStrategy) {
+        const dispatchResult = await existingStrategy.dispatchSync(updatedEnvironment);
+        if (dispatchResult.kind === 'queued') {
+          syncQueue = toSbSyncQueueDto(dispatchResult.syncQueue);
+        }
+        this.logger.log(`Triggered ${existingStrategy.version} sync job for environment ID ${updatedEnvironment.id} after update`);
+      } else if (updateDto.tenants && Array.isArray(updateDto.tenants)) {
         await this.updateEnvironmentTenants(updatedEnvironment, updateDto.tenants);
       }
 
       // Reload the environment with updated relations
-      return await this.sbEnvironmentsRepository.findOne({
+      const reloadedEnvironment = await this.sbEnvironmentsRepository.findOne({
         where: { id },
         relations: ['edfiTenants', 'edfiTenants.odss', 'edfiTenants.odss.edorgs'],
       });
+
+      if (!reloadedEnvironment) {
+        throw new ValidationHttpException({
+          field: 'environment',
+          message: 'Environment not found after update',
+        });
+      }
+
+      return { environment: reloadedEnvironment, syncQueue };
     } catch (error) {
       this.logger.error('Error updating environment:', error);
       throw error;
@@ -945,29 +668,4 @@ export class SbEnvironmentsEdFiService {
     });
   }
 
-  /**
-   * Extract ODS API URL from environment configuration
-   */
-  private extractOdsApiUrlFromEnvironment(environment: SbEnvironment): string | undefined {
-    const configPublic = environment.configPublic;
-    if (!configPublic?.values) {
-      return undefined;
-    }
-
-    // Handle v1 environments
-    if (configPublic.version === 'v1' && 'edfiHostname' in configPublic.values) {
-      const hostname = configPublic.values.edfiHostname;
-      return hostname?.startsWith('http') ? hostname : `https://${hostname}`;
-    }
-
-    // Handle v2 environments
-    if (configPublic.version === 'v2' && 'meta' in configPublic.values) {
-      const meta = configPublic.values.meta;
-      if (meta?.domainName) {
-        return meta.domainName.startsWith('http') ? meta.domainName : `https://${meta.domainName}`;
-      }
-    }
-
-    return undefined;
-  }
 }

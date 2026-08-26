@@ -5,7 +5,7 @@ import {
   AttributesGrid,
   ContentSection,
 } from '@edanalytics/common-ui';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { edorgQueries, odsQueries, edfiTenantQueries } from '../../api';
 import { EdorgLink, OdsLink, EdfiTenantLink, SbEnvironmentLink } from '../../routes';
 import { useTeamEdfiTenantNavContextLoaded } from '../../helpers';

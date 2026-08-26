@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useGetOneIntegrationProvider } from '../../api-v2';
 
 export const IntegrationProviderBreadcrumb = () => {

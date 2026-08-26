@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { usePaths } from '../../routes/paths';
 import { globalUserAuthConfig, useAuthorize, useNavContext } from '../../helpers';

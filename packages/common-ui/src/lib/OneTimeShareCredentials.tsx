@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { Heading, ScaleFade, Stack, Text } from '@chakra-ui/react';
 import { Attribute, PageContentCard } from './pageLayout';
-import { ApplicationResponseV1, ApplicationResponseV2, SecretSharingMethod } from '@edanalytics/models';
+import { ApiClientResponseV2, ApplicationResponseV1, ApplicationResponseV2, SecretSharingMethod } from '@edanalytics/models';
 
 function OneTimeShareCredentials({ canReset }: { canReset?: boolean }) {
-  const credentialsData: ApplicationResponseV1 | ApplicationResponseV2 | undefined = useLocation().state;
+  const credentialsData: ApplicationResponseV1 | ApplicationResponseV2 | ApiClientResponseV2 | undefined = useLocation().state;
   const [url, setUrl] = useState<string | undefined>(undefined);
   const [key, setKey] = useState<string | undefined>(undefined);
   const [secret, setSecret] = useState<string | undefined>(undefined);

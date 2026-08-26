@@ -1,7 +1,7 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetRoleDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { RoleGlobalPage } from '../Pages/RoleGlobal/RoleGlobalPage';
 import { RolesGlobalPage } from '../Pages/RoleGlobal/RolesGlobalPage';
 import { roleQueries } from '../api';

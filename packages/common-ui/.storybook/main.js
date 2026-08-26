@@ -1,4 +1,3 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { mergeConfig } from 'vite';
 import path from 'path';
 

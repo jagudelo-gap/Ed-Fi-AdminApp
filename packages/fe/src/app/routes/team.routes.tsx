@@ -1,7 +1,7 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetTeamDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, Link as RouterLink, useParams } from 'react-router-dom';
+import { RouteObject, Link as RouterLink, useParams } from 'react-router';
 import { TeamPage } from '../Pages/Team/TeamPage';
 import { TeamsPage } from '../Pages/Team/TeamsPage';
 import { teamQueries } from '../api';

@@ -1,10 +1,10 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { teamBaseAuthConfig, useAuthorize, useTeamSbEnvironmentNavContext } from '../../helpers';
 
 export const useEdfiTenantsActions = (): ActionsType => {
   const navigate = useNavigate();
-  const { sbEnvironment, sbEnvironmentId, teamId } = useTeamSbEnvironmentNavContext();
+  const { sbEnvironmentId, teamId } = useTeamSbEnvironmentNavContext();
 
   const { edfiTenantId } = useParams();
 

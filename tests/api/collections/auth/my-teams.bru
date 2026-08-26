@@ -1,0 +1,21 @@
+meta {
+  name: auth/my-teams - OK (200)
+  type: http
+  seq: 3
+  tags: Auth
+}
+
+headers {
+  Authorization: Bearer {{ACCESS_TOKEN}}
+}
+
+get {
+  url: {{BASE_URL}}/auth/my-teams
+}
+
+tests {
+  test("auth/my-teams - OK (200)", function() {
+    const status = res.getStatus();
+    expect(status).to.equal(200);
+  });
+}

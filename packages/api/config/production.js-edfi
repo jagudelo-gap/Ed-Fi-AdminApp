@@ -11,6 +11,10 @@ module.exports = {
   USE_YOPASS: true,
   YOPASS_URL: 'http://edfiadminapp-yopass:80',
   EDFI_URLS_TIMEOUT_MS: 5000, // 5 seconds
+  OIDC_DISCOVERY_TIMEOUT_MS: 10000, // 10 seconds
+  // Admin API EdOrg refresh polling (overrides default.js values if needed)
+  ADMINAPI_REFRESH_POLL_ATTEMPTS: 10,
+  ADMINAPI_REFRESH_POLL_INTERVAL_MS: 5000,
   DB_ENGINE: 'pgsql',// 'pgsql' or 'mssql'
   DB_TRUST_CERTIFICATE: false, // For MSSQL local development using self-signed certs, set to true
   DB_TTL_IN_MINUTES: 120, // Time to live for DB sessions in minutes
@@ -51,10 +55,7 @@ module.exports = {
     ISSUER: 'https://localhost/auth/realms/edfi',
     CLIENT_ID: 'edfiadminapp',
     CLIENT_SECRET: 'big-secret-123',
-    MACHINE_AUDIENCE: 'edfiadminapp-api',
-    MANAGEMENT_DOMAIN: 'localhost',
-    MANAGEMENT_CLIENT_ID: 'edfiadminapp-machine',
-    MANAGEMENT_CLIENT_SECRET: 'edfi-machine-secret-456'
+    MACHINE_AUDIENCE: 'edfiadminapp-api'
   },
 
   WHITELISTED_REDIRECTS: [FE_URL],
@@ -65,7 +66,16 @@ module.exports = {
   RATE_LIMIT_TTL: 60000,
 
   // The maximum number of requests within the ttl
-  RATE_LIMIT_LIMIT: 10,
+  RATE_LIMIT_LIMIT: 60,
 
   USE_PKCE: true,
+
+  // Verify TLS certificates on the API's outbound HTTPS calls (ODS/API, AdminApi,
+  // Yopass). Secure by default; set to false only when connecting to upstreams
+  // that use self-signed or otherwise untrusted certificates.
+  SSL_VERIFICATION: true,
+  // Certification artifact configuration
+  CERT_BRUNO_SRC_REF: 'v2.1.0',
+  CERT_BRUNO_SRC_CHECKSUM: '71840f51f464c60d7b90c7bbf08d9be039df291d51dd69085ffc4703b98f11e6',
+  CERT_BRUNO_ON_DOWNLOAD_ERROR: 'warning',
 };

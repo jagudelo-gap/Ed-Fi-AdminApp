@@ -1,10 +1,10 @@
 import { Link, Text } from '@chakra-ui/react';
 import { GetEdfiTenantDto } from '@edanalytics/models';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import { RouteObject, useParams, Link as RouterLink } from 'react-router-dom';
+import { RouteObject, useParams, Link as RouterLink } from 'react-router';
 import { EdfiTenantGlobalPage } from '../Pages/EdfiTenantGlobal/EdfiTenantGlobalPage';
 import { EdfiTenantsGlobalPage } from '../Pages/EdfiTenantGlobal/EdfiTenantsGlobalPage';
-import { edfiTenantQueries, edfiTenantQueriesGlobal } from '../api';
+import { edfiTenantQueriesGlobal } from '../api';
 import { getRelationDisplayName } from '../helpers';
 import { getEntityFromQuery } from '../helpers/getEntityFromQuery';
 import { CreateEdfiTenantGlobalPage } from '../Pages/EdfiTenantGlobal/CreateEdfiTenantGlobalPage';

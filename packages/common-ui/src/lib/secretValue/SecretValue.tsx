@@ -1,6 +1,9 @@
 import { Attribute } from '..';
 
-type BooleanProps = { isMasked?: boolean; isUrl?: boolean; isUrlExternal?: boolean };
+type BooleanProps = { isMasked?: boolean; isUrlExternal?: boolean } & (
+  | { isUrl: true }
+  | { isUrl?: false }
+);
 export type SecretFields = { key: string; label: string; booleans: BooleanProps }[];
 
 type GenericSecret = Record<string, string>;

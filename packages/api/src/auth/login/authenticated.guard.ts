@@ -14,13 +14,15 @@ import config from 'config';
 import { JWTPayload } from 'jose';
 import { User } from '@edanalytics/models-server';
 
-type Auth0Payload = JWTPayload & {
-  aud: string;
-  azp: string;
-  gty: string;
-  scope: string;
-  preferred_username: string;
-  client_id: string;
+type AccessTokenPayload = JWTPayload & {
+  aud: string | string[];
+  azp?: string;            // Keycloak/Auth0/Entra v2: authorized party (client id)
+  appid?: string;          // Entra v1.0 access tokens: client app id
+  gty?: string;
+  scope?: string;          // Keycloak / Auth0 (space-delimited)
+  roles?: string[];        // Entra app-only (client_credentials)
+  preferred_username?: string;
+  client_id?: string;      // Keycloak (via mapper) / Auth0
 };
 
 @Injectable()
@@ -119,25 +121,43 @@ export class AuthenticatedGuard implements CanActivate {
       }
 
       const { data } = verifyResult;
-      const { aud: audience, azp: clientId, scope, preferred_username: username, client_id: machineClientId } = data as Auth0Payload;
+      const payload = data as AccessTokenPayload;
+      const username = payload.preferred_username;
 
-      // Determine if it's a machine client token
-      const isMachineClient = !!machineClientId || (audience === AUTH0_CONFIG_SECRET.MACHINE_AUDIENCE && !username);
+      // aud may be a string (Keycloak/Auth0/Entra) or an array (some IdPs / jose).
+      const audiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+      const audienceMatches = audiences.includes(AUTH0_CONFIG_SECRET.MACHINE_AUDIENCE);
+
+      // Machine client id by IdP convention:
+      //   Keycloak / Auth0 -> client_id ; Entra v2 -> azp ; Entra v1 -> appid
+      const machineClientId = payload.client_id ?? payload.azp ?? payload.appid;
+
+      // login:app authorization by IdP convention:
+      //   Keycloak / Auth0 -> scope ; Entra app-only -> roles
+      // Entra delegated `scp` is deliberately excluded: only app-only (machine) tokens qualify.
+      const grants = new Set<string>([
+        ...(payload.scope?.split(' ') ?? []),
+        ...(payload.roles ?? []),
+      ]);
+
+      // Keep the original machine signal (explicit client_id) to avoid reclassifying a
+      // human Keycloak bearer token (which carries azp but no client_id) as a machine.
+      const isMachineClient = !!payload.client_id || (audienceMatches && !username);
 
       let user: User;
       try {
         if (isMachineClient) {
-          if (audience !== AUTH0_CONFIG_SECRET.MACHINE_AUDIENCE || !scope?.includes('login:app')) {
+          if (!audienceMatches || !grants.has('login:app')) {
             throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
           }
           user = await this.authService.validateUser({ clientId: machineClientId });
         } else {
           Logger.verbose(`Authenticating user: ${username}`);
-          if (!username || audience !== 'account') {
+          if (!username || !audiences.includes('account')) {
             throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
           }
-          // User token: pass username and clientId for validation
-          user = await this.authService.validateUser({ username, clientId });
+          // User token: pass username and clientId (azp) for validation
+          user = await this.authService.validateUser({ username, clientId: payload.azp });
         }
         if (user && user.isActive) {
           request.user = user;

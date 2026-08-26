@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetEdfiTenantDto } from '@edanalytics/models';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { edfiTenantQueries } from '../../api';
 import { teamBaseAuthConfig, useAuthorize, useTeamSbEnvironmentNavContext } from '../../helpers';
@@ -9,7 +9,7 @@ import { mutationErrCallback } from '../../helpers/mutationErrCallback';
 export const useEdfiTenantActions = (edfiTenant: GetEdfiTenantDto | undefined): ActionsType => {
   const popBanner = usePopBanner();
   const navigate = useNavigate();
-  const { sbEnvironment, sbEnvironmentId, teamId } = useTeamSbEnvironmentNavContext();
+  const { sbEnvironmentId, teamId } = useTeamSbEnvironmentNavContext();
   const { edfiTenantId } = useParams();
   const deleteTenant = edfiTenantQueries.delete({ sbEnvironmentId, teamId });
 

@@ -56,6 +56,21 @@ export class GetOdsDto
   @Expose()
   odsInstanceName: string | null;
 
+  @Expose()
+  instanceType: string | null;
+
+  @Expose()
+  instanceManageId: number | null;
+
+  @Expose()
+  status: string | null;
+
+  @Expose()
+  databaseTemplate: string | null;
+
+  @Expose()
+  databaseName: string | null;
+
   override get displayName() {
     return this.odsInstanceName ?? this.dbName;
   }
@@ -73,7 +88,12 @@ export class PutOdsDto
       | 'dbName'
       | 'sbEnvironmentId'
       | 'odsInstanceName'
+      | 'instanceType'
       | 'integrationApps'
+      | 'status'
+      | 'databaseTemplate'
+      | 'databaseName'
+      | 'instanceManageId'
     >
 {
   @Expose()
@@ -98,15 +118,24 @@ export class PostOdsDto
       | 'sbEnvironmentId'
       | 'edfiTenantId'
       | 'odsInstanceName'
+      | 'instanceType'
       | 'integrationApps'
+      | 'status'
+      | 'databaseTemplate'
+      | 'databaseName'
+      | 'instanceManageId'
     >
 {
   @Expose()
   @MinLength(3)
   @MaxLength(29)
-  @Matches(/^[a-z0-9]+$/, { message: 'Name must only contain numbers and lowercase letters.' })
+  @Matches(/^[A-Za-z0-9 _]+$/, { message: 'Name must only contain letters, numbers, spaces, and underscores.' })
   @TrimWhitespace()
   name: string;
+
+  @Expose()
+  @TrimWhitespace()
+  databaseTemplate?: string;
 
   @Expose()
   @TrimWhitespace()

@@ -10,7 +10,7 @@ import { AxiosResponse } from 'axios';
 import { ClassConstructor } from 'class-transformer';
 import kebabCase from 'kebab-case';
 import { methods } from '../methods';
-import { TeamOptions } from './queries';
+import { TeamOptions } from './team-options';
 
 export const queryFromEntity = <EntityType extends Id>(entity: EntityType) => ({
   data: { [entity.id]: entity },

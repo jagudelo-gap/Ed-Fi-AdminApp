@@ -9,13 +9,16 @@
 # file's directory.
 
 # Build stage - Use latest Node.js Alpine with pinned SHA for security and reproducibility
-FROM node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5 AS build
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS build
 
 WORKDIR /app
 
+ARG VITE_BASE_PATH=/adminapp/
+
 ENV NX_VERBOSE_LOGGING=true \
-  NODE_OPTIONS="--max-old-space-size=4096" \
-  VITE_BASE_PATH="./"
+    NODE_OPTIONS="--max-old-space-size=4096" \
+    VITE_BASE_PATH="${VITE_BASE_PATH}" \
+    CYPRESS_INSTALL_BINARY=0
 
 # Copy only manifest + workspace config for efficient layer caching
 COPY package*.json ./

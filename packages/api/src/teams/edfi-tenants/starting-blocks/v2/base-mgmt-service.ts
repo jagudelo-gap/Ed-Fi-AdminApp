@@ -31,9 +31,12 @@ export class BaseMgmtServiceV2 {
     } = { errorMessage: string; errorType: string; requestId: string; stackTrace?: string[] }
   >(sbEnvironment: SbEnvironment, payload: object) {
     const configPublic = sbEnvironment.configPublic;
-    const v2Config =
-      'version' in configPublic && configPublic.version === 'v2' ? configPublic.values : undefined;
-    const arnStr = v2Config?.meta?.[this.arnPropertyName];
+    const versionedConfig =
+      'version' in configPublic &&
+      (configPublic.version === 'v2' || configPublic.version === 'v3')
+        ? configPublic.values
+        : undefined;
+    const arnStr = versionedConfig?.meta?.[this.arnPropertyName];
     if (arnStr) {
       const arn = parse(arnStr);
       const client = new LambdaClient({

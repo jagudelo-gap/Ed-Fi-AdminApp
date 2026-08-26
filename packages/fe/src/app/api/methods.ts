@@ -3,7 +3,7 @@ import { ClassConstructor, instanceToPlain, plainToInstance } from 'class-transf
 import { config } from '../../config/config';
 
 export const API_URL: string = config.apiUrl.endsWith("/api") ? config.apiUrl : `${config.apiUrl}/api`;
-export const IDP_ACCOUNT_URL: string = config.idpAccountUrl || 'https://localhost/auth/realms/edfi/account/';
+export const IDP_ACCOUNT_URL: string | undefined = config.idpAccountUrl;
 axios.defaults.baseURL = API_URL;
 
 export const apiClient = axios.create({

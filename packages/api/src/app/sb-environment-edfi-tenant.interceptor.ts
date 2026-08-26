@@ -31,7 +31,7 @@ export class SbEnvironmentEdfiTenantInterceptor implements NestInterceptor {
 
     const sbEnvironmentId = Number(request.params?.sbEnvironmentId);
     const edfiTenantId = Number(request.params?.edfiTenantId);
-    const sbVersion = this.reflector.getAllAndOverride<string>(SB_VERSION, [
+    const sbVersions = this.reflector.getAllAndOverride<string[]>(SB_VERSION, [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -60,7 +60,7 @@ export class SbEnvironmentEdfiTenantInterceptor implements NestInterceptor {
         .catch(throwNotFound);
     }
 
-    if (sbVersion && sbVersion !== request.sbEnvironment.version) {
+    if (sbVersions?.length && !sbVersions.includes(request.sbEnvironment.version)) {
       throw new NotFoundException(
         `${operation} is not supported in ${request.sbEnvironment.version} environments`
       );

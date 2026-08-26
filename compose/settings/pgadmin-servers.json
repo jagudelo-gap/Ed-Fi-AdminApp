@@ -1,36 +1,36 @@
 {
   "Servers": {
     "1": {
-      "Name": "v7-tenant1-db-ods",
+      "Name": "odsV7-adminV2-tenant1-db-ods",
       "Group": "ODS-API-7x",
-      "Host": "v7-tenant1-db-ods",
+      "Host": "odsV7-adminV2-tenant1-db-ods",
       "Port": 5432,
       "MaintenanceDB": "postgres",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
     "2": {
-      "Name": "v7-tenant2-db-ods",
+      "Name": "odsV7-adminV2-tenant2-db-ods",
       "Group": "ODS-API-7x",
-      "Host": "v7-tenant2-db-ods",
+      "Host": "odsV7-adminV2-tenant2-db-ods",
       "Port": 5432,
       "MaintenanceDB": "postgres",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
     "3": {
-      "Name": "v7-tenant1-db-admin",
+      "Name": "odsV7-adminV2-tenant1-db-admin",
       "Group": "ODS-API-7x",
-      "Host": "v7-tenant1-db-admin",
+      "Host": "odsV7-adminV2-tenant1-db-admin",
       "Port": 5432,
       "MaintenanceDB": "EdFi_Admin",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
     "4": {
-      "Name": "v7-tenant2-db-admin",
+      "Name": "odsV7-adminV2-tenant2-db-admin",
       "Group": "ODS-API-7x",
-      "Host": "v7-tenant2-db-admin",
+      "Host": "odsV7-adminV2-tenant2-db-admin",
       "Port": 5432,
       "MaintenanceDB": "EdFi_Admin",
       "Username": "postgres",
@@ -73,18 +73,72 @@
       "SSLMode": "prefer"
     },
     "9": {
-      "Name": "v7-single-db-ods",
+      "Name": "odsV7-adminV2-single-db-ods",
       "Group": "ODS-API-7x",
-      "Host": "v7-db-ods",
+      "Host": "odsV7-adminV2-single-db-ods",
       "Port": 5432,
       "MaintenanceDB": "EdFi_Ods",
       "Username": "postgres",
       "SSLMode": "prefer"
     },
     "10": {
-      "Name": "v7-single-db-admin",
+      "Name": "odsV7-adminV2-single-db-admin",
       "Group": "ODS-API-7x",
-      "Host": "v7-single-db-admin",
+      "Host": "odsV7-adminV2-single-db-admin",
+      "Port": 5432,
+      "MaintenanceDB": "EdFi_Admin",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "11": {
+      "Name": "odsV7-adminV3-tenant1-db-ods",
+      "Group": "ODS-API-7x",
+      "Host": "odsV7-adminV3-tenant1-db-ods",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "12": {
+      "Name": "odsV7-adminV3-tenant2-db-ods",
+      "Group": "ODS-API-7x",
+      "Host": "odsV7-adminV3-tenant2-db-ods",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "13": {
+      "Name": "odsV7-adminV3-tenant1-db-admin",
+      "Group": "ODS-API-7x",
+      "Host": "odsV7-adminV3-tenant1-db-admin",
+      "Port": 5432,
+      "MaintenanceDB": "EdFi_Admin",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "14": {
+      "Name": "odsV7-adminV3-tenant2-db-admin",
+      "Group": "ODS-API-7x",
+      "Host": "odsV7-adminV3-tenant2-db-admin",
+      "Port": 5432,
+      "MaintenanceDB": "EdFi_Admin",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "15": {
+      "Name": "odsV7-adminV3-single-db-ods",
+      "Group": "ODS-API-7x",
+      "Host": "odsV7-adminV3-single-db-ods",
+      "Port": 5432,
+      "MaintenanceDB": "EdFi_Ods",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "16": {
+      "Name": "odsV7-adminV3-single-db-admin",
+      "Group": "ODS-API-7x",
+      "Host": "odsV7-adminV3-single-db-admin",
       "Port": 5432,
       "MaintenanceDB": "EdFi_Admin",
       "Username": "postgres",

@@ -1,4 +1,9 @@
-const defer = require('config/defer').deferConfig;
+let defer;
+try {
+  ({ deferConfig: defer } = require('config/defer'));
+} catch {
+  ({ deferConfig: defer } = require('config/lib/defer'));
+}
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 
 // Test secret retrieval locally if you want by adding creds to the client:
@@ -24,33 +29,34 @@ module.exports = {
   API_PORT: 5000,
   // min hr day mo yr
   SB_SYNC_CRON: '0 2 * * *',
+  // Admin API EdOrg refresh polling
+  ADMINAPI_REFRESH_POLL_ATTEMPTS: 10,
+  ADMINAPI_REFRESH_POLL_INTERVAL_MS: 5000,
   TYPEORM_LOGGING: undefined,
   // TypeORM database resilience configuration
   TYPEORM_RETRY_ATTEMPTS: 3,
   TYPEORM_RETRY_DELAY: 3000,
-  AUTH0_CONFIG_SECRET: defer(function () {
+  AUTH0_CONFIG_SECRET: defer(async function () {
     if (this.AWS_AUTH0_CONFIG_SECRET) {
-      return new Promise(async (r) => {
-        const secretsClient = new SecretsManagerClient({
-          region: this.AWS_REGION,
-        });
-        const secretValueRaw = await secretsClient.send(
-          new GetSecretValueCommand({
-            SecretId: this.AWS_AUTH0_CONFIG_SECRET,
-          })
-        );
-        if (secretValueRaw.SecretString === undefined) {
-          throw new Error('No client config values defined for auth0 when requesting secrets');
-        }
-
-        const secret = JSON.parse(secretValueRaw.SecretString);
-        r({
-          ISSUER: secret.ISSUER,
-          CLIENT_ID: secret.CLIENT_ID,
-          CLIENT_SECRET: secret.CLIENT_SECRET,
-          MACHINE_AUDIENCE: secret.MACHINE_AUDIENCE,
-        });
+      const secretsClient = new SecretsManagerClient({
+        region: this.AWS_REGION,
       });
+      const secretValueRaw = await secretsClient.send(
+        new GetSecretValueCommand({
+          SecretId: this.AWS_AUTH0_CONFIG_SECRET,
+        })
+      );
+      if (secretValueRaw.SecretString === undefined) {
+        throw new Error('No client config values defined for auth0 when requesting secrets');
+      }
+
+      const secret = JSON.parse(secretValueRaw.SecretString);
+      return {
+        ISSUER: secret.ISSUER,
+        CLIENT_ID: secret.CLIENT_ID,
+        CLIENT_SECRET: secret.CLIENT_SECRET,
+        MACHINE_AUDIENCE: secret.MACHINE_AUDIENCE,
+      };
     } else {
       return { ...this.AUTH0_CONFIG_SECRET_VALUE };
     }
@@ -149,6 +155,7 @@ module.exports = {
   OPENAPI_TITLE: 'Starting Blocks Admin App',
   OPENAPI_DESCRIPTION: 'OpenAPI spec for the EA Starting Blocks admin application.',
   EDFI_URLS_TIMEOUT_MS: 5000, // 5 seconds
+  OIDC_DISCOVERY_TIMEOUT_MS: 10000, // 10 seconds
 
   // The time to live in milliseconds
   RATE_LIMIT_TTL: 60000,
@@ -157,7 +164,15 @@ module.exports = {
   RATE_LIMIT_LIMIT: 100,
 
   USE_PKCE: true,
+  
+  // Default to false for local development, can be overridden in production with environment variable. Set to true to enable SSL verification.
+  SSL_VERIFICATION: false, 
 
   // Set the _minimum_ log level. This uses NestJs logging, so the allowed values are: verbose, debug, log, warn, error, fatal
   LOG_LEVEL: 'log',
+
+  // Certification artifact configuration
+  CERT_BRUNO_SRC_REF: 'v2.1.0', // Tag name or commit ref
+  CERT_BRUNO_SRC_CHECKSUM: '71840f51f464c60d7b90c7bbf08d9be039df291d51dd69085ffc4703b98f11e6', // SHA-256 checksum of the artifact zip file for integrity verification
+  CERT_BRUNO_ON_DOWNLOAD_ERROR: 'error', // 'error' | 'warning' // Whether to error out or just warn if there's a problem downloading or initializing the certification artifact. Note that if set to 'warning' and there's a problem with the certification artifact, any API routes depending on it will fail at runtime when they attempt to use the artifact.
 };

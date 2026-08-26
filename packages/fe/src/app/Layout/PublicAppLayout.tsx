@@ -1,5 +1,5 @@
 import { Box, VStack } from '@chakra-ui/react';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import { useMe } from '../api';
 import { AppBar } from './AppBar';
 import { AppBarPublic } from './AppBarPublic';

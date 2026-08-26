@@ -22,7 +22,7 @@ import { noop } from '@tanstack/react-table';
 import uniq from 'lodash/uniq';
 import { useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { roleQueries } from '../../api';
 import { mutationErrCallback } from '../../helpers/mutationErrCallback';
@@ -91,7 +91,7 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
   try {
     // might be fancy error object for privilege dependencies
     privilegesError = JSON.parse(errors.privilegeIds?.message as string);
-  } catch (error) {
+  } catch {
     // either undefined or plain string from class-validator
   }
   const newPrivileges = watch('privilegeIds');
@@ -182,7 +182,7 @@ export const EditRoleGlobal = (props: { role: GetRoleDto }) => {
               type="submit"
               onClick={(e) => {
                 e.preventDefault();
-                props.onClick && props.onClick(e);
+                props.onClick?.(e);
               }}
             >
               Save

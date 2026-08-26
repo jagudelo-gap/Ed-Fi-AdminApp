@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { vendorQueriesV1 } from '../../api';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { EditVendor } from './EditVendor';

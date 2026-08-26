@@ -2,8 +2,6 @@ import { StatusResponse } from '@edanalytics/utils';
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { Response } from 'express';
-import type { AdminApiControllerV1 } from './admin-api.v1.controller';
-import type { AdminApiServiceV1 } from './admin-api.v1.service';
 
 /**
  * Catch AxiosErrors from Admin API and convert them to StatusResponses.

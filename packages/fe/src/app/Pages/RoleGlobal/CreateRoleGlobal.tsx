@@ -22,7 +22,7 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { noop } from '@tanstack/react-table';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { roleQueries } from '../../api';
 import { useNavToParent } from '../../helpers';
@@ -64,7 +64,7 @@ export const CreateRoleGlobalPage = () => {
   try {
     // might be fancy error object for privilege dependencies
     privilegesError = JSON.parse(errors.privilegeIds?.message as string);
-  } catch (error) {
+  } catch {
     // either undefined or plain string from class-validator
   }
 

@@ -8,6 +8,7 @@ export interface AppConfig {
   contact?: string;
   applicationName?: string;
   idpAccountUrl?: string;
+  showRequestCertification: boolean;
 }
 
 // Runtime config pushed by /config.js (optional)
@@ -20,6 +21,7 @@ type RuntimeConfig = {
   VITE_CONTACT?: string;
   VITE_APPLICATION_NAME?: string;
   VITE_IDP_ACCOUNT_URL?: string;
+  VITE_SHOW_REQUEST_CERTIFICATION?: string;
 };
 
 // Read runtime overrides (if any)
@@ -37,5 +39,9 @@ export const config: Readonly<AppConfig> = Object.freeze({
   contact: runtime.VITE_CONTACT ?? env.VITE_CONTACT,
   applicationName: runtime.VITE_APPLICATION_NAME ?? env.VITE_APPLICATION_NAME,
   idpAccountUrl: runtime.VITE_IDP_ACCOUNT_URL ?? env.VITE_IDP_ACCOUNT_URL,
-  oidcId: String(runtime.VITE_OIDC_ID ?? env.VITE_OIDC_ID ?? '1')
+  oidcId: String(runtime.VITE_OIDC_ID ?? env.VITE_OIDC_ID ?? '1'),
+  showRequestCertification:
+    String(
+      runtime.VITE_SHOW_REQUEST_CERTIFICATION ?? env.VITE_SHOW_REQUEST_CERTIFICATION ?? 'false'
+    ).toLowerCase() === 'true'
 });

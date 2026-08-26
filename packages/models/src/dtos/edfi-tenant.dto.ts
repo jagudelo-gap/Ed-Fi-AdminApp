@@ -56,7 +56,7 @@ export class PostEdfiTenantDto
 
   @Expose()
   @IsOptional()
-  @Matches(/^([\s,]*\d+)*[\s,]*$/, {
+  @Matches(/^[\s,]*\d+(?:[\s,]+\d+)*[\s,]*$/, {
     message: 'Allowed Ed-Orgs must be a list of comma-separated numbers.',
   })
   allowedEdorgs?: string;

@@ -1,4 +1,4 @@
-import { type RouteObject } from 'react-router-dom';
+import { type RouteObject } from 'react-router';
 import { ManyIntegrationProvidersPage } from '../Pages/IntegrationProvider/ManyIntegrationProvidersPage';
 import { CreateIntegrationProviderPage } from '../Pages/IntegrationProvider/CreateIntegrationProviderPage';
 import { OneIntegrationProviderPage } from '../Pages/IntegrationProvider/OneIntegrationProviderPage';

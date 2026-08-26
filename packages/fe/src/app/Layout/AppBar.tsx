@@ -10,7 +10,7 @@ import {
   MenuList,
   Text,
 } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import logoUrl from '../../assets/ed-fi-logo-light.svg';
 import { apiClient, useMe, useMyTeams } from '../api';
 import { useAsId } from './Nav';
@@ -76,7 +76,7 @@ export const AppBar = () => {
           <MenuList>
             <MenuItem
               onClick={() => {
-                // This ensures proper logout from both AdminApp and Keycloak, then redirects to login page
+                // This ensures proper logout from both AdminApp and the identity provider, then redirects to login page
                 window.location.href = `${apiClient.defaults.baseURL}/auth/logout`;
               }}
             >

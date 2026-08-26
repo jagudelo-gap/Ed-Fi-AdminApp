@@ -1,7 +1,7 @@
 import '@tanstack/react-table';
 
 declare module '@tanstack/table-core' {
-  interface ColumnMeta<TData extends RowData, TValue> {
+  interface ColumnMeta<_TData extends RowData, _TValue> {
     type: 'date' | 'duration' | 'number' | 'options' | undefined;
   }
 }

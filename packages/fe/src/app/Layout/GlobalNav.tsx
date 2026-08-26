@@ -1,7 +1,7 @@
 import { Box, Link } from '@chakra-ui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import sortBy from 'lodash/sortBy';
-import { Link as RouterLink, useMatches } from 'react-router-dom';
+import { Link as RouterLink, useMatches } from 'react-router';
 import { sbEnvironmentQueries } from '../api';
 import { arrayElemIf, authorize, useAuthorize, usePrivilegeCacheForConfig } from '../helpers';
 import { INavButtonProps, NavButton } from './NavButton';

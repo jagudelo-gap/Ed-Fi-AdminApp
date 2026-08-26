@@ -19,3 +19,16 @@ updates:
         update-types:
           - 'minor'
           - 'patch'
+      security-minor-patches:
+        applies-to: security-updates
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    ignore:
+      # Nx's babel tooling (@nx/react, @nx/js) hard-requires Babel 7.x;
+      # Babel 8 breaks `nx run fe:test` until Nx adds support.
+      - dependency-name: '@babel/*'
+        update-types:
+          - 'version-update:semver-major'

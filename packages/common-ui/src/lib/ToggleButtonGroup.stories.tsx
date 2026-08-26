@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta } from '@storybook/react-vite';
 import { ToggleButtonGroup } from './ToggleButtonGroup';
 import { Button } from '@chakra-ui/react';
 import { useState } from 'react';

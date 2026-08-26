@@ -1,0 +1,66 @@
+# Ignored vulnerabilities for OpenSSF Scorecard's "Vulnerabilities" check (osv-scanner).
+# All entries below are devDependency-only (build/CI tooling), confirmed via
+# `npm audit --omit=dev` returning 0 vulnerabilities, and have no upstream fix
+# available as of the date noted. Re-check before this date and remove entries
+# once a fix ships. eng/helpers/check-ignored-vuln-fixes.ps1 automates that check
+# (also runs as an informational step in .github/workflows/scorecard.yml).
+
+# --- brace-expansion: bundled inside npm CLI (devDependency chain via semantic-release) ---
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+reason = "brace-expansion, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06
+
+[[IgnoredVulns]]
+id = "GHSA-rgw5-rvv9-x895"
+reason = "brace-expansion, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06
+
+# --- image-size: via less -> @nx/webpack (devDependency, build tooling) ---
+[[IgnoredVulns]]
+id = "GHSA-5p2g-fcmc-qvqq"
+reason = "image-size, via less -> @nx/webpack (devDependency, build tooling). No patched image-size version exists yet (latest 2.0.2 still flagged)."
+ignoreUntil = 2026-09-06
+
+[[IgnoredVulns]]
+id = "GHSA-w3rx-r6r6-pgpr"
+reason = "image-size, via less -> @nx/webpack (devDependency, build tooling). No patched image-size version exists yet (latest 2.0.2 still flagged)."
+ignoreUntil = 2026-09-06
+
+# --- ip-address: bundled inside npm CLI (devDependency chain via semantic-release) ---
+[[IgnoredVulns]]
+id = "GHSA-22jq-vg5j-6vgg"
+reason = "ip-address, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06
+
+[[IgnoredVulns]]
+id = "GHSA-4xrf-jv44-h6hh"
+reason = "ip-address, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06
+
+[[IgnoredVulns]]
+id = "GHSA-mwp4-54f8-5fhr"
+reason = "ip-address, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06
+
+# --- tar: bundled inside npm CLI (devDependency chain via semantic-release) ---
+[[IgnoredVulns]]
+id = "GHSA-r292-9mhp-454m"
+reason = "tar, bundled inside npm CLI (devDependency chain via semantic-release). Patched tar 7.5.21 exists on npm registry, but npm CLI still bundles 7.5.19 as of its latest release."
+ignoreUntil = 2026-09-06
+
+# --- undici: bundled inside npm CLI (devDependency chain via semantic-release) ---
+[[IgnoredVulns]]
+id = "GHSA-8xcm-r25x-g524"
+reason = "undici, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06
+
+[[IgnoredVulns]]
+id = "GHSA-m8rv-5g2x-5cg5"
+reason = "undici, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06
+
+[[IgnoredVulns]]
+id = "GHSA-v3r7-h72x-cjcm"
+reason = "undici, bundled inside npm CLI (devDependency chain via semantic-release). No npm CLI release ships a patched bundle yet."
+ignoreUntil = 2026-09-06

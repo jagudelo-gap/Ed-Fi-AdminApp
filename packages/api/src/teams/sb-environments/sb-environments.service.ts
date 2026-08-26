@@ -5,7 +5,7 @@ import {
   toOdsTemplateOptionDto,
 } from '@edanalytics/models';
 import { SbEnvironment, regarding } from '@edanalytics/models-server';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { CustomHttpException, throwNotFound } from '../../utils';
@@ -38,7 +38,7 @@ export class SbEnvironmentsService {
     });
   }
 
-  async remove(id: number, user: GetUserDto) {
+  async remove(id: number, _user: GetUserDto) {
     const old = await this.findOne(id).catch(throwNotFound);
     await this.sbEnvironmentsRepository.remove(old);
     return undefined;

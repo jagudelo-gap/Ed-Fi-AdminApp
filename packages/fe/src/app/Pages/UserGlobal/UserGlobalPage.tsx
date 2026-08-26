@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { PageActions, PageTemplate } from '@edanalytics/common-ui';
 import omit from 'lodash/omit';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { userQueries } from '../../api';
 import { useSearchParamsObject } from '../../helpers/useSearch';
 import { EditUserGlobal } from './EditUserGlobal';

@@ -23,7 +23,6 @@
 
 ```mermaid
 C4Context
-
     Person_Ext(leaAdmin, "LEA Administrator", "desc...")
     System_Ext(auth, "Identity Provider", "Open ID Connect compatible IdP")
 
@@ -43,7 +42,6 @@ C4Context
     Rel(sysAdmin, auth, "https")
     Rel(sysAdmin, edfiadminapp, "https")
 
-    BiRel(edfiadminapp, workers, "https")
     Rel(edfiadminapp, edfi1, "https")
     Rel(edfiadminapp, edfi2, "https")
     Rel(edfiadminapp, edfi3, "https")
@@ -51,9 +49,7 @@ C4Context
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
-The Ed-Fi Admin App (AA) is a centralized management system for managing Ed-Fi deployments. The system serves two primary user types: LEA Administrators who manage local educational data environments, and System Administrators who oversee the entire infrastructure.
-
-The Admin App acts as a control plane that communicates with various Ed-Fi API environments (each containing ODS/API, Admin API, and associated databases). It leverages custom .NET "worker" applications to perform automated operations across these environments, including creation and deletion of database instances.
+The Ed-Fi Admin App (AA) is a centralized management system for managing Ed-Fi deployments. The system serves two primary user types: LEA Administrators who manage local educational data environments, and System Administrators who oversee the entire infrastructure. The Admin App acts as a control plane that communicates with various Ed-Fi API environments (each containing ODS/API, Admin API, and associated databases).
 
 Authentication is handled through an external OpenID Connect-compatible Identity Provider, ensuring secure access for all users. The system provides a unified interface for managing multiple Ed-Fi instances while maintaining isolation between different educational environments, enabling scalable administration of educational data systems across multiple tenants or organizations.
 

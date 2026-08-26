@@ -77,7 +77,7 @@ export class OwnershipsGlobalService {
     return out;
   }
 
-  async remove(id: number, user: GetUserDto) {
+  async remove(id: number, _user: GetUserDto) {
     const old = await this.findOne(id).catch(throwNotFound);
     await this.ownershipsRepository.remove(old);
     this.authService.reloadTeamOwnershipCache(old.teamId);

@@ -34,8 +34,9 @@ import {
 } from '@edanalytics/models';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { CellContext, ColumnFiltersState, SortingState } from '@tanstack/react-table';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { methods, queryKey } from '../../api';
+import { useIsStartingBlocksDeployment } from '../../helpers';
 import { SbSyncQueueLink } from '../../routes';
 import { useSbSyncQueueActions } from './useSbSyncQueueActions';
 
@@ -148,10 +149,10 @@ export const SbSyncQueuesTable = ({ defaultFilters }: { defaultFilters: ColumnFi
       getFacetedMinMaxValues={(table, columnId) => () => {
         if (columnId === 'createdOnNumber') {
           const result = facetedValues.data?.createdon ?? [null, null];
-          return [Number(result[0]) ?? null, Number(result[1]) ?? null];
+          return [Number(result[0]), Number(result[1])];
         } else if (columnId === 'completedOnNumber') {
           const result = facetedValues.data?.completedon ?? [null, null];
-          return [Number(result[0]) ?? null, Number(result[1]) ?? null];
+          return [Number(result[0]), Number(result[1])];
         } else {
           return undefined;
         }
@@ -211,7 +212,7 @@ export const SbSyncQueuesTable = ({ defaultFilters }: { defaultFilters: ColumnFi
           cell: (info) =>
             info.getValue() ? (
               <Popover trigger="hover" autoFocus={false}>
-                {({ isOpen, onClose }) => (
+                {({ isOpen }) => (
                   <>
                     <PopoverTrigger>
                       <Text
@@ -295,9 +296,10 @@ export const SbSyncQueuesTable = ({ defaultFilters }: { defaultFilters: ColumnFi
 };
 
 export const SbSyncQueuesPage = () => {
+  const isStartingBlocks = useIsStartingBlocksDeployment();
   return (
     <PageTemplate
-      title="Starting Blocks sync queue"
+      title={isStartingBlocks ? 'Starting Blocks sync queue' : 'Ed-Fi Data Store Sync Queue'}
       //  actions={<PageActions actions={actions} />}
     >
       <SbSyncQueuesTable defaultFilters={[]} />

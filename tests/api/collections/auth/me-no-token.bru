@@ -1,0 +1,17 @@
+meta {
+  name: auth/me (No token) - Unauthorized (401)
+  type: http
+  seq: 2
+  tags: Auth
+}
+
+get {
+  url: {{BASE_URL}}/auth/me
+}
+
+tests {
+  test("auth/me (No token) - Unauthorized (401)", function() {
+    const status = res.getStatus();
+    expect(status).to.equal(401);
+  });
+}

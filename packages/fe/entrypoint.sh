@@ -12,6 +12,7 @@ jq -n \
 	--arg start "${VITE_STARTING_GUIDE:-}" \
 	--arg contact "${VITE_CONTACT:-}" \
 	--arg name "${VITE_APPLICATION_NAME:-}" \
+	--arg requestCertification "${VITE_SHOW_REQUEST_CERTIFICATION:-}" \
 	'{
 		VITE_API_URL: $api,
 		VITE_OIDC_ID: $oidc,
@@ -20,7 +21,8 @@ jq -n \
 		VITE_IDP_ACCOUNT_URL: $idp,
 		VITE_STARTING_GUIDE: $start,
 		VITE_CONTACT: $contact,
-		VITE_APPLICATION_NAME: $name
+		VITE_APPLICATION_NAME: $name,
+		VITE_SHOW_REQUEST_CERTIFICATION: $requestCertification
 	}' > "$tmp"
 
 {

@@ -1,6 +1,6 @@
 import { Button, ButtonGroup } from '@chakra-ui/react';
 import { OperationResultDto } from '@edanalytics/models';
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { useOperationResultDisclosure } from './OperationResult';
 
 const ToastApp: React.FC<OperationResultDto> = (props: OperationResultDto) => {

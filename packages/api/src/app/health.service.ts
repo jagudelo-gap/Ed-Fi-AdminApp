@@ -85,7 +85,7 @@ export class HealthService {
 
       return await Promise.race([healthCheckPromise, healthCheckTimeout]);
 
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -122,7 +122,7 @@ export class HealthService {
       if (client) {
         try {
           await client.end();
-        } catch (cleanupError) {
+        } catch (_cleanupError) {
           // Ignore cleanup errors
           Logger.debug('Health check client cleanup error (ignored)');
         }

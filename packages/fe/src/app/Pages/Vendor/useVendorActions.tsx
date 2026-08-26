@@ -1,6 +1,6 @@
 import { ActionsType, Icons } from '@edanalytics/common-ui';
 import { GetVendorDto } from '@edanalytics/models';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { usePopBanner } from '../../Layout/FeedbackBanner';
 import { vendorQueriesV1 } from '../../api';
 import { useAuthorize, useTeamEdfiTenantNavContextLoaded, vendorAuthConfig } from '../../helpers';

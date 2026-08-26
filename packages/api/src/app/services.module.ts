@@ -26,13 +26,15 @@ import {
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from '../auth/auth.service';
 import { SessionSerializer } from '../auth/helpers/session.serializer';
-import { RegisterOidcIdpsService } from '../auth/login/oidc.strategy';
+import { OidcIdpBootstrapper } from '../auth/login/oidc.strategy';
+import { OidcProviderRegistry } from '../auth/login/oidc-provider.registry';
 import { EdorgsGlobalService } from '../edfi-tenants-global/edorgs-global/edorgs-global.service';
 import { OdssGlobalService } from '../edfi-tenants-global/odss-global/odss-global.service';
 import { OwnershipsGlobalService } from '../ownerships-global/ownerships-global.service';
 import { RolesGlobalService } from '../roles-global/roles-global.service';
 import { SbEnvironmentsGlobalService } from '../sb-environments-global/sb-environments-global.service';
 import { SbEnvironmentsEdFiService } from '../sb-environments-global/sb-environments-edfi.services';
+import { AdminApiSyncService } from '../sb-sync/edfi/adminapi-sync.service';
 import { SbSyncConsumer } from '../sb-sync/sb-sync.consumer';
 import { EdfiTenantsService } from '../teams/edfi-tenants/edfi-tenants.service';
 import { EdorgsService } from '../teams/edfi-tenants/edorgs/edorgs.service';
@@ -42,8 +44,15 @@ import {
   StartingBlocksServiceV2,
   StartingBlocksServiceV1,
   AdminApiServiceV2,
+  AdminApiServiceV3,
 } from '../teams/edfi-tenants/starting-blocks';
 import { MetadataService } from '../teams/edfi-tenants/starting-blocks/metadata.service';
+import {
+  AdminApiVersionStrategyFactory,
+  V1AdminApiVersionStrategy,
+  V2AdminApiVersionStrategy,
+  V3AdminApiVersionStrategy,
+} from '../admin-api-version-strategy';
 import { OwnershipsService } from '../teams/ownerships/ownerships.service';
 import { RolesService } from '../teams/roles/roles.service';
 import { TeamsGlobalService } from '../teams/teams-global.service';
@@ -76,6 +85,12 @@ const imports = [
 const providers = [
   AdminApiServiceV1,
   AdminApiServiceV2,
+  AdminApiServiceV3,
+  AdminApiVersionStrategyFactory,
+  V1AdminApiVersionStrategy,
+  V2AdminApiVersionStrategy,
+  V3AdminApiVersionStrategy,
+  AdminApiSyncService,
   AuthService,
   CacheService,
   DatabaseConfigService,
@@ -88,7 +103,8 @@ const providers = [
   OdssService,
   OwnershipsGlobalService,
   OwnershipsService,
-  RegisterOidcIdpsService,
+  OidcIdpBootstrapper,
+  OidcProviderRegistry,
   RolesGlobalService,
   RolesService,
   SbEnvironmentsGlobalService,
