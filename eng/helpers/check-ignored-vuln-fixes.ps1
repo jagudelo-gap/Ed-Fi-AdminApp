@@ -279,7 +279,21 @@ foreach ($ghsaId in $ignoredGhsaIds) {
   }
 }
 
-$results | Format-Table -AutoSize -Wrap
+# Force a wide render so PowerShell doesn't truncate columns to the runner's
+# (often narrow/non-interactive) reported console width.
+$results | Format-Table -AutoSize -Wrap | Out-String -Width 4096 | Write-Host
+
+if ($env:GITHUB_STEP_SUMMARY) {
+  # The raw Actions log doesn't render tables at all; write a Markdown table to the
+  # job summary instead, which GitHub renders nicely on the workflow run page.
+  $summary = "### Ignored vulnerability fix check`n`n"
+  $summary += "| GHSA ID | Package | Source | Locked | Patched | Status |`n"
+  $summary += "|---|---|---|---|---|---|`n"
+  foreach ($r in $results) {
+    $summary += "| $($r.GhsaId) | $($r.Package) | $($r.Source) | $($r.Locked) | $($r.Patched) | $($r.Status) |`n"
+  }
+  Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary
+}
 
 $fixesAvailable = $results | Where-Object { $_.Status -like 'FIX AVAILABLE*' }
 if ($fixesAvailable) {
