@@ -1,11 +1,13 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import {
+  CopyClaimsetDtoV3,
   GetApiClientDtoV3,
   GetClaimsetMultipleDtoV3,
   GetClaimsetSingleDtoV3,
   GetDataStoreDetailDtoV3,
   GetDataStoreSummaryDtoV3,
+  ImportClaimsetSingleDtoV3,
   PostInstanceDtoV3,
   toGetApiClientDtoV3,
   toGetClaimsetMultipleDtoV3,
@@ -137,5 +139,85 @@ describe('PostInstanceDtoV3', () => {
     });
 
     await expect(validate(dto)).resolves.toHaveLength(0);
+  });
+});
+
+describe('V3 claim set name validation', () => {
+  const namesOf = async (dto: object) => (await validate(dto)).map((e) => e.property);
+
+  describe('CopyClaimsetDtoV3', () => {
+    const make = (name: string) =>
+      Object.assign(new CopyClaimsetDtoV3(), { originalId: 1, name });
+
+    it('rejects a name containing an inner space', async () => {
+      expect(await namesOf(make('AB Connect'))).toContain('name');
+    });
+
+    it('rejects a name containing an inner tab', async () => {
+      expect(await namesOf(make('AB\tConnect'))).toContain('name');
+    });
+
+    it('accepts a whitespace-free name with punctuation', async () => {
+      expect(await namesOf(make('Dash-Under_Dot.Ok'))).not.toContain('name');
+    });
+
+    it('rejects a name of 300 characters', async () => {
+      expect(await namesOf(make('A'.repeat(300)))).toContain('name');
+    });
+
+    it('accepts a 254-character name', async () => {
+      expect(await namesOf(make('A'.repeat(254)))).not.toContain('name');
+    });
+
+    it('rejects an empty name', async () => {
+      expect(await namesOf(make(''))).toContain('name');
+    });
+
+    it('rejects an empty name with an isNotEmpty constraint, not just the whitespace matches rule', async () => {
+      const errors = await validate(make(''));
+      const nameError = errors.find((e) => e.property === 'name');
+
+      expect(nameError?.constraints).toHaveProperty('isNotEmpty');
+    });
+
+    it('rejects a whitespace-only name', async () => {
+      expect(await namesOf(make('   '))).toContain('name');
+    });
+  });
+
+  describe('ImportClaimsetSingleDtoV3', () => {
+    const make = (name: string) =>
+      Object.assign(new ImportClaimsetSingleDtoV3(), { name, resourceClaims: [] });
+
+    it('rejects a name containing an inner space', async () => {
+      expect(await namesOf(make('AB Connect'))).toContain('name');
+    });
+
+    it('rejects a name containing an inner tab', async () => {
+      expect(await namesOf(make('AB\tConnect'))).toContain('name');
+    });
+
+    it('accepts a whitespace-free name', async () => {
+      expect(await namesOf(make('ABConnect'))).not.toContain('name');
+    });
+
+    it('rejects a name of 300 characters', async () => {
+      expect(await namesOf(make('A'.repeat(300)))).toContain('name');
+    });
+
+    it('rejects an empty name', async () => {
+      expect(await namesOf(make(''))).toContain('name');
+    });
+
+    it('rejects an empty name with an isNotEmpty constraint, not just the whitespace matches rule', async () => {
+      const errors = await validate(make(''));
+      const nameError = errors.find((e) => e.property === 'name');
+
+      expect(nameError?.constraints).toHaveProperty('isNotEmpty');
+    });
+
+    it('rejects a whitespace-only name', async () => {
+      expect(await namesOf(make('   '))).toContain('name');
+    });
   });
 });

@@ -21,6 +21,7 @@ import {
   PostApiClientResponseDtoV2,
   PostInstanceDtoV2,
   ImportClaimsetSingleDtoV2,
+  ImportClaimsetSingleDtoV3,
   PostApplicationFormDtoV2,
   PostApplicationFormDtoV3,
   PostApplicationResponseDtoV3,
@@ -273,6 +274,40 @@ export const claimsetQueriesV3 = new EntityQueryBuilder({
 })
   .getOne('getOne', { ResDto: GetClaimsetSingleDtoV3 })
   .getAll('getAll', { ResDto: GetClaimsetMultipleDtoV3 })
+  .post(
+    'createExport',
+    { ResDto: Id, ReqDto: class Nothing {} },
+    (base, pathParams: { ids: number[] }) =>
+      standardPath({
+        edfiTenant: base.edfiTenant,
+        teamId: base.teamId,
+        kebabCaseName: 'claimset',
+        adminApi: true,
+        id: `export?id=${pathParams.ids.join('&id=')}`,
+      })
+  )
+  .post(
+    'import',
+    {
+      ResDto: Id,
+      ReqDto: ImportClaimsetSingleDtoV3,
+      keysToInvalidate: (base) => [
+        queryKeyNew({
+          ...base.standardQueryKeyParams,
+          pathOverride: undefined,
+          id: undefined,
+        }),
+      ],
+    },
+    (base) =>
+      standardPath({
+        edfiTenant: base.edfiTenant,
+        teamId: base.teamId,
+        kebabCaseName: 'claimset',
+        adminApi: true,
+        id: `import`,
+      })
+  )
   .post(
     'copy',
     {

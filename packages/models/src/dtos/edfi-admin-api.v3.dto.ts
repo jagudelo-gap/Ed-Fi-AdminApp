@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
   ValidateNested,
@@ -393,6 +394,14 @@ export const toGetClaimsetSingleDtoV3 = makeSerializer<
 export class ImportClaimsetSingleDtoV3 {
   @Expose()
   @TrimWhitespace()
+  // Admin API V3 rejects any whitespace character in a claim set name (verified
+  // live: inner space and inner tab both return 400 "Claim set name must not
+  // contain white spaces."). Neither this nor the length cap is declared in
+  // swagger, so both are mirrored here to fail before the API round-trip.
+  // V2 has no whitespace rule — do not copy this to the V2 DTO.
+  @IsNotEmpty()
+  @Matches(/^\S*$/, { message: 'Name must not contain white spaces.' })
+  @MaxLength(254)
   name: string;
 
   @Expose()
@@ -497,6 +506,10 @@ export class CopyClaimsetDtoV3 {
   @Expose()
   @IsString()
   @TrimWhitespace()
+  // See ImportClaimsetSingleDtoV3.name — same V3-only rules.
+  @IsNotEmpty()
+  @Matches(/^\S*$/, { message: 'Name must not contain white spaces.' })
+  @MaxLength(254)
   name: string;
 }
 

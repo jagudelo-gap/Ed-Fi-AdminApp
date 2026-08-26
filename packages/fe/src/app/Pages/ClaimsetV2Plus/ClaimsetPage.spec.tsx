@@ -27,14 +27,13 @@ jest.mock('./claimsetConfig', () => ({
 }));
 
 // ClaimsetPage.tsx also exports ClaimsetPageActions, which pulls in
-// useClaimsetActions.tsx. That module imports `claimsetQueriesV2, API_URL`
-// directly from '../../api' (bypassing useClaimsetConfig() on purpose, for
-// the V2-only Export action — see useClaimsetActions.tsx's comment), and
-// '../../api' transitively reaches config.ts's `import.meta.env`, which Jest's
-// Babel transform can't parse. Mocking '../../api' here avoids loading that
-// chain; ClaimsetPageContent (the only thing under test) never touches it.
+// useClaimsetActions.tsx. That module reads its queries from
+// useClaimsetConfig() (Export works the same way for both versions now), but
+// it also imports `API_URL` directly from '../../api', and '../../api'
+// transitively reaches config.ts's `import.meta.env`, which Jest's Babel
+// transform can't parse. Mocking '../../api' here avoids loading that chain;
+// ClaimsetPageContent (the only thing under test) never touches it.
 jest.mock('../../api', () => ({
-  claimsetQueriesV2: {},
   API_URL: '',
 }));
 

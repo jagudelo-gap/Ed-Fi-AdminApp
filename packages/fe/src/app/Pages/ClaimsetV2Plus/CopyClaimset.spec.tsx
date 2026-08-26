@@ -108,3 +108,31 @@ describe('CopyClaimsetForm', () => {
     );
   });
 });
+
+// Recursively collect every string rendered anywhere in the element tree, so the
+// assertion does not depend on where in the FormControl the helper text sits.
+const collectText = (node: unknown, acc: string[] = []): string[] => {
+  if (node === null || node === undefined || node === false) return acc;
+  if (typeof node === 'string') { acc.push(node); return acc; }
+  if (Array.isArray(node)) { node.forEach((n) => collectText(n, acc)); return acc; }
+  if (typeof node === 'object' && 'props' in (node as { props?: unknown })) {
+    return collectText((node as { props: { children?: unknown } }).props?.children, acc);
+  }
+  return acc;
+};
+
+describe('CopyClaimsetForm name helper text', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('shows the no-whitespace helper text for a v3 tenant', () => {
+    setup('v3', { originalId: 1, name: 'SIS Vendor (copy)' });
+    const form = getFormElement({ id: 1, name: 'SIS Vendor' });
+    expect(collectText(form)).toContain('Cannot contain whitespace.');
+  });
+
+  it('does not show the helper text for a v2 tenant', () => {
+    setup('v2', { originalId: 1, name: 'SIS Vendor (copy)' });
+    const form = getFormElement({ id: 1, name: 'SIS Vendor' });
+    expect(collectText(form)).not.toContain('Cannot contain whitespace.');
+  });
+});

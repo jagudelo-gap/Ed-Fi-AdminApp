@@ -16,6 +16,7 @@ import { ClaimsetPageV2 } from '../Pages/ClaimsetV2Plus/ClaimsetPage';
 import { ClaimsetsPageV2 } from '../Pages/ClaimsetV2Plus/ClaimsetsPage';
 import { CopyClaimsetPage } from '../Pages/ClaimsetV2Plus/CopyClaimset';
 import { ImportClaimsetsPageV2 } from '../Pages/ClaimsetV2Plus/ImportClaimsetsPage';
+import { ImportClaimsetsPageV3 } from '../Pages/ClaimsetV2Plus/ImportClaimsetsPageV3';
 import { useClaimsetConfig } from '../Pages/ClaimsetV2Plus/claimsetConfig';
 import { claimsetQueriesV1 } from '../api';
 import { getRelationDisplayName, useTeamEdfiTenantNavContextLoaded, withLoader } from '../helpers';
@@ -66,7 +67,13 @@ export const claimsetCopyRoute: RouteObject = {
 };
 export const claimsetImportRoute: RouteObject = {
   path: '/as/:asId/sb-environments/:sbEnvironmentId/edfi-tenants/:edfiTenantId/claimsets/import',
-  element: <VersioningHoc v1={<ImportClaimsetsPage />} v2={<ImportClaimsetsPageV2 />} />,
+  element: (
+    <VersioningHoc
+      v1={<ImportClaimsetsPage />}
+      v2={<ImportClaimsetsPageV2 />}
+      v3={<ImportClaimsetsPageV3 />}
+    />
+  ),
   handle: { crumb: () => 'Import Claimsets' },
 };
 export const claimsetIndexRoute: RouteObject = {

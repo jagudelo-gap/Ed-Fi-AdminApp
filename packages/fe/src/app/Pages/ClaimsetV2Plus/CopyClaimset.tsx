@@ -4,6 +4,7 @@ import {
   ButtonGroup,
   FormControl,
   FormErrorMessage,
+  FormHelperText,
   FormLabel,
   Input,
   Text,
@@ -47,7 +48,11 @@ export const CopyClaimsetForm = ({ claimset }: { claimset: ClaimsetForCopy }) =>
 
 function CopyClaimsetFormInner<D extends CopyClaimsetDtoV2 | CopyClaimsetDtoV3>(props: {
   claimset: ClaimsetForCopy;
-  config: { queries: { copy: typeof claimsetQueriesV2.copy }; CopyDto: new () => D };
+  config: {
+    version: 'v2' | 'v3';
+    queries: { copy: typeof claimsetQueriesV2.copy };
+    CopyDto: new () => D;
+  };
 }) {
   const { claimset, config } = props;
   const { queries, CopyDto } = config;
@@ -103,6 +108,13 @@ function CopyClaimsetFormInner<D extends CopyClaimsetDtoV2 | CopyClaimsetDtoV3>(
         <FormControl isInvalid={!!errors.name}>
           <FormLabel>Name</FormLabel>
           <Input {...register(field('name'))} placeholder="name" />
+          {/* Admin API V3 rejects any whitespace in a claim set name. The copy
+              default ("<name> (copy)") intentionally still contains spaces, so
+              state the rule up front rather than only on a failed submit.
+              Branching on config.version follows 527-design.md section 3a. */}
+          {props.config.version === 'v3' ? (
+            <FormHelperText>Cannot contain whitespace.</FormHelperText>
+          ) : null}
           <FormErrorMessage>{errorMessage('name')}</FormErrorMessage>
         </FormControl>
         <ButtonGroup mt={4} colorScheme="primary">

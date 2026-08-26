@@ -356,6 +356,9 @@ export const toGetClaimsetSingleDtoV2 = makeSerializer(GetClaimsetSingleDtoV2);
 export class ImportClaimsetSingleDtoV2 {
   @Expose()
   @TrimWhitespace()
+  // Admin API rejects names of 255+ characters in BOTH versions. Note V2 has no
+  // whitespace restriction — that rule is V3-only, see ImportClaimsetSingleDtoV3.
+  @MaxLength(254)
   name: string;
 
   @Expose()
@@ -465,6 +468,7 @@ export class CopyClaimsetDtoV2 {
   @Expose()
   @IsString()
   @TrimWhitespace()
+  @MaxLength(254)
   name: string;
 }
 
